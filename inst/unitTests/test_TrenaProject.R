@@ -51,9 +51,8 @@ test_ctor <- function()
    checkTrue(is.matrix(getExpressionMatrix(proj, "dummyExpressionSet_1")))
    checkTrue(is.matrix(getExpressionMatrix(proj, "dummyExpressionSet_2")))
 
-   checkEquals(getVariantDatasetNames(proj), c("dummyVariants_1", "dummyVariants_2"))
-   checkTrue(is.data.frame(getVariantDataset(proj, "dummyVariants_1")))
-   checkTrue(is.data.frame(getVariantDataset(proj, "dummyVariants_2")))
+   expected <- c("someGene.region.vcf", "tbl.snp.gwas.minimal")
+   checkTrue(all(expected %in% getVariantDatasetNames(proj)))
 
    tbl.covariates <- getCovariatesTable(proj)
 
@@ -89,3 +88,5 @@ test_ctor <- function()
 
 } # test_ctor
 #------------------------------------------------------------------------------------------------------------------------
+if(!interactive())
+   runTests()

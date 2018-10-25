@@ -82,9 +82,9 @@ TrenaProject <- function(supportedGenes,
       # gene-specific information, freshly assigned with every call to setTargetGene
    state$targetGene <- NULL
    state$tbl.transcripts <- NULL
-   state$enhancers <- NULL
-   state$dhs <- NULL
-   state$chipSeq <- NULL
+   #state$enhancers <- NULL
+   #state$dhs <- NULL
+   #state$chipSeq <- NULL
 
    .TrenaProject(supportedGenes=supportedGenes,
                  genomeName=genomeName,
@@ -148,6 +148,14 @@ setMethod('setTargetGene', 'TrenaProject',
       tbl.transcripts <- .getCodingTranscripts(targetGene, obj@genomeName)
       obj@state$targetGene <- targetGene
       obj@state$tbl.transcripts <- tbl.transcripts
+      roi <- getGeneEnhancersRegion(obj)
+      message(sprintf("new roi for %s: %s", targetGene, roi))
+      chromLoc <- trena::parseChromLocString(roi)
+      #if(!obj@quiet){
+      #   message(sprintf("starting chipSeq request"))
+      #   obj@state$chipSeq <- getChipSeq(obj, chromLoc$chrom, chromLoc$start, chromLoc$end, tfs=NA)
+      #   message(sprintf("ending chipSeq request"))
+      #   } # if !quiet
       })
 
 #------------------------------------------------------------------------------------------------------------------------
