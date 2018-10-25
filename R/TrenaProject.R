@@ -280,9 +280,13 @@ setMethod('getExpressionMatrix',  'TrenaProject',
 #' @export
 
 setMethod('getVariantDatasetNames', 'TrenaProject',
-     function(obj){
-       sub(".RData", "", list.files(obj@variantsDirectory), fixed=TRUE)
-       })
+
+      function(obj){
+          filenames <- sub(".RData", "", list.files(obj@variantsDirectory), fixed=TRUE)
+          full.paths <- file.path(obj@variantsDirectory, filenames)
+          names(full.paths) <- filenames
+          return(full.paths)
+          })
 
 #------------------------------------------------------------------------------------------------------------------------
 #' Get the specified variants table

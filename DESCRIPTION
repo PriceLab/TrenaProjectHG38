@@ -1,8 +1,8 @@
 Package: TrenaProject
 Type: Package
 Title: TrenaProject - an abstract base class
-Version: 0.99.6
-Date: 2018-10-24
+Version: 0.99.8
+Date: 2018-10-25
 Author: Paul Shannon
 Maintainer: Paul Shannon<pshannon@systemsbiology.org>
 Description: An abstract base class, providing abstractions for expression, eqtl, footprint, enhancer and variant data

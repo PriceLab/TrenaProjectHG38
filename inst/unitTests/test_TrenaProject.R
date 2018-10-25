@@ -52,7 +52,14 @@ test_ctor <- function()
    checkTrue(is.matrix(getExpressionMatrix(proj, "dummyExpressionSet_2")))
 
    expected <- c("someGene.region.vcf", "tbl.snp.gwas.minimal")
-   checkTrue(all(expected %in% getVariantDatasetNames(proj)))
+   file.list <- getVariantDatasetNames(proj)
+   checkTrue(all(expected %in% names(file.list)))
+   checkTrue(file.exists(file.list[["someGene.region.vcf"]]))
+
+     # most variant files - other than vcfs - are serialized into .RData files,
+     # with that suffix stripped off for human readers (in a presumed Shiny UI)
+
+   checkTrue(file.exists(sprintf("%s.RData", file.list[["tbl.snp.gwas.minimal"]])))
 
    tbl.covariates <- getCovariatesTable(proj)
 
@@ -85,6 +92,9 @@ test_ctor <- function()
 
    checkEquals(getGeneEnhancersRegion(proj),                     "chr6:41154324-41210533")
    checkEquals(getGeneEnhancersRegion(proj, flankingPercent=10), "chr6:41148703-41216154")
+
+   browser()
+   vf <- getVariantDatasetNames(proj)
 
 } # test_ctor
 #------------------------------------------------------------------------------------------------------------------------
