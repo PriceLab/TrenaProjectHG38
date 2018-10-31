@@ -1,7 +1,7 @@
 #' @import trena
 #' @importFrom DBI   dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
 #' @importFrom RPostgreSQL dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
-#' @import RSQLite
+#' @import RPostgreSQL
 #'
 #' @title TrenaProject
 #------------------------------------------------------------------------------------------------------------------------
@@ -285,7 +285,7 @@ setMethod('getVariantDatasetNames', 'TrenaProject',
           filenames <- sub(".RData", "", list.files(obj@variantsDirectory), fixed=TRUE)
           full.paths <- file.path(obj@variantsDirectory, filenames)
           names(full.paths) <- filenames
-          return(full.paths)
+          return(as.list(full.paths))
           })
 
 #------------------------------------------------------------------------------------------------------------------------
@@ -368,8 +368,8 @@ setMethod('getEncodeDHS',   'TrenaProject',
 setMethod('getChipSeq',  'TrenaProject',
 
     function(obj, chrom, start, end, tfs=NA){
-       db <- dbConnect(dbDriver("SQLite"), "~/s/data/public/human/remap-2018/remap-all.sqlite")
-       query <- sprintf("select * from chipseq where chr='%s' and start >= %d and end <= %d", chrom, start, end)
+       db <- dbConnect(PostgreSQL(), user= "trena", password="trena", dbname="hg38", host="khaleesi")
+       query <- sprintf("select * from chipseq where chrom='%s' and start >= %d and endpos <= %d", chrom, start, end)
        tbl.chipSeq <- dbGetQuery(db, query)
        if(!obj@quiet) message(sprintf("tfs before filtering: %d", length (tbl.chipSeq$tf)))
        if(!(all(is.na(tfs))))
