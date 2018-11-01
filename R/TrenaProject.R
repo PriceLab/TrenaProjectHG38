@@ -2,6 +2,7 @@
 #' @importFrom DBI   dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
 #' @importFrom RPostgreSQL dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
 #' @import RPostgreSQL
+#' @imort org.Hs.eg.db
 #'
 #' @title TrenaProject
 #------------------------------------------------------------------------------------------------------------------------
@@ -144,7 +145,7 @@ setMethod('getSupportedGenes', 'TrenaProject',
 setMethod('setTargetGene', 'TrenaProject',
 
    function(obj, targetGene) {
-      stopifnot(targetGene %in% obj@supportedGenes)
+      stopifnot(targetGene %in% getSupportedGenes(obj))
       tbl.transcripts <- .getCodingTranscripts(targetGene, obj@genomeName)
       obj@state$targetGene <- targetGene
       obj@state$tbl.transcripts <- tbl.transcripts
@@ -283,9 +284,10 @@ setMethod('getVariantDatasetNames', 'TrenaProject',
 
       function(obj){
           filenames <- sub(".RData", "", list.files(obj@variantsDirectory), fixed=TRUE)
-          full.paths <- file.path(obj@variantsDirectory, filenames)
-          names(full.paths) <- filenames
-          return(as.list(full.paths))
+          #full.paths <- file.path(obj@variantsDirectory, filenames)
+          #names(full.paths) <- filenames
+          #return(as.list(full.paths))
+          return(filenames)
           })
 
 #------------------------------------------------------------------------------------------------------------------------
