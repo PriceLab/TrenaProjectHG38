@@ -1,2 +1,5 @@
-# trenaGene
-trena-related aggregation of a gene, a hierarchy of classes, with expression data, transcript and variant info, genomic and epigenomic context, trena models and/or the means to create them
+# trenaProject
+an abstract base class for (usually) tissue-specifi trena projects,
+providing access to ChiP-seq, enhancer, transcript and open chromatin
+data.
+
