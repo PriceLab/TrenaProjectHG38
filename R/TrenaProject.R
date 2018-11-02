@@ -2,7 +2,7 @@
 #' @importFrom DBI   dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
 #' @importFrom RPostgreSQL dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
 #' @import RPostgreSQL
-#' @imort org.Hs.eg.db
+#' @import org.Hs.eg.db
 #'
 #' @title TrenaProject
 #------------------------------------------------------------------------------------------------------------------------

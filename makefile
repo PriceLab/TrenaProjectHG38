@@ -16,3 +16,8 @@ check:
 
 biocCheck:
 	(cd ..; R CMD BiocCheck `ls -t TrenaProject_* | head -1`)
+
+
+test:
+	for x in inst/unitTests/test_*.R; do echo $$x; R -f $$x; done
+
