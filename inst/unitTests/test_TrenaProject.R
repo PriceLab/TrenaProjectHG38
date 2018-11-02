@@ -53,13 +53,13 @@ test_ctor <- function()
 
    expected <- c("someGene.region.vcf", "tbl.snp.gwas.minimal")
    file.list <- getVariantDatasetNames(proj)
-   checkTrue(all(expected %in% names(file.list)))
-   checkTrue(file.exists(file.list[["someGene.region.vcf"]]))
+   checkTrue(all(expected %in% file.list))
+   #checkTrue(file.exists("someGene.region.vcf"))
 
      # most variant files - other than vcfs - are serialized into .RData files,
      # with that suffix stripped off for human readers (in a presumed Shiny UI)
 
-   checkTrue(file.exists(sprintf("%s.RData", file.list[["tbl.snp.gwas.minimal"]])))
+   #checkTrue(file.exists(sprintf("%s.RData", file.list[["tbl.snp.gwas.minimal"]])))
 
    tbl.covariates <- getCovariatesTable(proj)
 
@@ -85,7 +85,8 @@ test_ctor <- function()
 
    tbl.chipseq <- getChipSeq(proj, chrom=chromosome, start=loc.min, end=loc.max, tfs=NA)
    checkTrue(nrow(tbl.chipseq) > 2000)
-   checkEquals(colnames(tbl.chipseq), c("chr", "start", "end", "tf", "name", "peakStart", "peakEnd"))
+
+   checkEquals(colnames(tbl.chipseq), c("chrom", "start", "endpos", "tf", "name", "strand", "peakStart", "peakEnd"))
 
    checkEquals(getGeneRegion(proj),                     "chr6:41158506-41163186")
    checkEquals(getGeneRegion(proj, flankingPercent=20), "chr6:41157570-41164122")
@@ -93,7 +94,6 @@ test_ctor <- function()
    checkEquals(getGeneEnhancersRegion(proj),                     "chr6:41154324-41210533")
    checkEquals(getGeneEnhancersRegion(proj, flankingPercent=10), "chr6:41148703-41216154")
 
-   browser()
    vf <- getVariantDatasetNames(proj)
 
 } # test_ctor
