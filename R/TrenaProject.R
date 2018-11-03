@@ -110,7 +110,8 @@ TrenaProject <- function(supportedGenes,
    query.1 <- "and gene_biotype='protein_coding' and moleculetype in ('gene', 'transcript')"
    query <- paste(query.0, query.1)
    tbl.transcripts <- DBI::dbGetQuery(genome.db, query)
-   stopifnot(nrow(tbl.transcripts) > 0)
+   dbDisconnect(genome.db)
+   #stopifnot(nrow(tbl.transcripts) > 0)
 
    return(tbl.transcripts)
 
@@ -145,7 +146,8 @@ setMethod('getSupportedGenes', 'TrenaProject',
 setMethod('setTargetGene', 'TrenaProject',
 
    function(obj, targetGene) {
-      stopifnot(targetGene %in% getSupportedGenes(obj))
+      if(!all(is.na(getSupportedGenes(obj))))
+         stopifnot(targetGene %in% getSupportedGenes(obj))
       tbl.transcripts <- .getCodingTranscripts(targetGene, obj@genomeName)
       obj@state$targetGene <- targetGene
       obj@state$tbl.transcripts <- tbl.transcripts
