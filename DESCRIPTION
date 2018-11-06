@@ -1,12 +1,12 @@
 Package: TrenaProject
 Type: Package
 Title: TrenaProject - an abstract base class
-Version: 0.99.15
-Date: 2018-11-02
+Version: 0.99.17
+Date: 2018-11-06
 Author: Paul Shannon
 Maintainer: Paul Shannon<pshannon@systemsbiology.org>
 Description: An abstract base class, providing abstractions for expression, eqtl, footprint, enhancer and variant data
-Depends: R (>= 3.5.1)
+Depends: R (>= 3.5.0)
 License: Apache 2.0
 Encoding: UTF-8
 RoxygenNote: 6.1.0

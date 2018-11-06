@@ -111,6 +111,7 @@ TrenaProject <- function(supportedGenes,
    query <- paste(query.0, query.1)
    tbl.transcripts <- DBI::dbGetQuery(genome.db, query)
    stopifnot(nrow(tbl.transcripts) > 0)
+   DBI::dbDisconnect(geneome.db)
 
    return(tbl.transcripts)
 
@@ -283,6 +284,8 @@ setMethod('getExpressionMatrix',  'TrenaProject',
 setMethod('getVariantDatasetNames', 'TrenaProject',
 
       function(obj){
+          if(obj@variantsDirectory == "/dev/null")
+             return(list())
           filenames <- sub(".RData", "", list.files(obj@variantsDirectory), fixed=TRUE)
           #full.paths <- file.path(obj@variantsDirectory, filenames)
           #names(full.paths) <- filenames
@@ -302,7 +305,9 @@ setMethod('getVariantDatasetNames', 'TrenaProject',
 #' @export
 
 setMethod('getVariantDataset', 'TrenaProject',
+
     function(obj, datasetName){
+        stopifnot(!obj@variantsDirectory == "/dev/null")
         file.name <- sprintf("%s.RData", file.path(obj@variantsDirectory, datasetName))
         eval(parse(text=sprintf("tbl <- %s", load(file.name))))
         tbl
