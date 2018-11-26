@@ -17,6 +17,10 @@ TrenaProject(supportedGenes, genomeName, footprintDatabaseHost,
 \item{genomeName}{A string indicating the genome used by the Trena object.
 Currently, only human and mouse ("hg38","mm10") are supported}
 
+\item{footprintDatabaseHost}{Character string (e.g., "khaleesi.systemsbiology.net")}
+
+\item{footprintDatabaseNames}{Character string (e.g., "hint_brain_20")}
+
 \item{expressionDirectory}{A string pointing to a collection of RData expression matrices}
 
 \item{variantsDirectory}{A string pointing to a collection of RData variant files}

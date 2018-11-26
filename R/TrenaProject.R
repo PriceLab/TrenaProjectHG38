@@ -1,8 +1,9 @@
 ####' @import trena
-#' @importFrom DBI   dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
+#' @importFrom DBI dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
 #' @importFrom RPostgreSQL dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
 #' @import RPostgreSQL
 #' @import org.Hs.eg.db
+#' @importFrom methods new
 #'
 #' @title TrenaProject
 #------------------------------------------------------------------------------------------------------------------------
@@ -57,8 +58,8 @@ setGeneric('getGeneEnhancersRegion',    signature='obj', function(obj, flankingP
 #' @param supportedGenes a vector of character strings
 #' @param genomeName A string indicating the genome used by the Trena object.
 #'                  Currently, only human and mouse ("hg38","mm10") are supported
-#' @parma footprintDatabaseHost,
-#' @param footprintDatabaseNames
+#' @param footprintDatabaseHost Character string (e.g., "khaleesi.systemsbiology.net")
+#' @param footprintDatabaseNames Character string (e.g., "hint_brain_20")
 #' @param expressionDirectory A string pointing to a collection of RData expression matrices
 #' @param variantsDirectory A string pointing to a collection of RData variant files
 #' @param covariatesFile  the (optional) name of a covariates files
@@ -154,11 +155,6 @@ setMethod('setTargetGene', 'TrenaProject',
       roi <- getGeneEnhancersRegion(obj)
       message(sprintf("new roi for %s: %s", targetGene, roi))
       chromLoc <- trena::parseChromLocString(roi)
-      #if(!obj@quiet){
-      #   message(sprintf("starting chipSeq request"))
-      #   obj@state$chipSeq <- getChipSeq(obj, chromLoc$chrom, chromLoc$start, chromLoc$end, tfs=NA)
-      #   message(sprintf("ending chipSeq request"))
-      #   } # if !quiet
       })
 
 #------------------------------------------------------------------------------------------------------------------------
@@ -268,6 +264,7 @@ setMethod('getExpressionMatrix',  'TrenaProject',
        filename <- sprintf("%s.RData", matrixName)
        full.path <- file.path(obj@expressionDirectory, filename)
        stopifnot(file.exists(full.path))
+       mtx <- NULL
        eval(parse(text=paste("mtx <- ", load(full.path))))
        invisible(mtx)
         })
@@ -310,6 +307,7 @@ setMethod('getVariantDataset', 'TrenaProject',
     function(obj, datasetName){
         stopifnot(!obj@variantsDirectory == "/dev/null")
         file.name <- sprintf("%s.RData", file.path(obj@variantsDirectory, datasetName))
+        tbl <- NULL
         eval(parse(text=sprintf("tbl <- %s", load(file.name))))
         tbl
         })
@@ -329,9 +327,11 @@ setMethod('getEnhancers',  'TrenaProject',
      function(obj){
         targetGene <- getTargetGene(obj)
         stopifnot(!is.null(targetGene))
-        full.path <- system.file(package="TrenaProject", "extdata", "geneHancer.v4.7.allGenes.RData")
+        tbl.enhancers <- data.frame() # suppress R CMD CHECK NOTE
+        full.path <- system.file(package="TrenaProject", "extdata", "epigenome", "geneHancer.v4.7.allGenes.RData")
         stopifnot(file.exists(full.path))
         load(full.path)
+        geneSymbol <- NULL
         subset(tbl.enhancers, geneSymbol == targetGene)
         })
 
@@ -379,6 +379,7 @@ setMethod('getChipSeq',  'TrenaProject',
        db <- dbConnect(PostgreSQL(), user= "trena", password="trena", dbname="hg38", host="khaleesi")
        query <- sprintf("select * from chipseq where chrom='%s' and start >= %d and endpos <= %d", chrom, start, end)
        tbl.chipSeq <- dbGetQuery(db, query)
+       tf <- NULL  # quiet R CMD CHECK NOTE
        if(!obj@quiet) message(sprintf("tfs before filtering: %d", length (tbl.chipSeq$tf)))
        if(!(all(is.na(tfs))))
          tbl.chipSeq <- subset(tbl.chipSeq, tf %in% tfs)
@@ -425,6 +426,7 @@ setMethod('getCovariatesTable', 'TrenaProject',
 setMethod('getGeneRegion',  'TrenaProject',
           function(obj, flankingPercent=0){
              tbl.transcripts <- getTranscriptsTable(obj)
+             moleculetype <- NULL
              tbl.gene <- subset(tbl.transcripts, moleculetype=="gene")[1,]
              chrom <- tbl.gene$chr
              start <- tbl.gene$start

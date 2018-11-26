@@ -10,8 +10,7 @@ Imports:
    methods,
    DBI,
    org.Hs.eg.db,
-   RPostgreSQL,
-   RMariaDB
+   RPostgreSQL
 Description: An abstract base class, providing abstractions for expression, eqtl, footprint, enhancer and variant data.
 Depends: R (>= 3.5.0)
 License: Artistic-2.0
