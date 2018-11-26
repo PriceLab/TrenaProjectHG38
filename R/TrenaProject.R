@@ -1,4 +1,4 @@
-#' @import trena
+####' @import trena
 #' @importFrom DBI   dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
 #' @importFrom RPostgreSQL dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
 #' @import RPostgreSQL
@@ -10,7 +10,7 @@
 #' @rdname TrenaProject-class
 #' @aliases TrenaProject
 #'
-#' @import methods
+## @import methods
 
 .TrenaProject <- setClass ("TrenaProject",
                         representation = representation(
@@ -54,19 +54,20 @@ setGeneric('getGeneEnhancersRegion',    signature='obj', function(obj, flankingP
 #'
 #' @rdname TrenaProject-class
 #'
-#' @param geneSymbol  A character string in standard HUGO nomenclature
+#' @param supportedGenes a vector of character strings
 #' @param genomeName A string indicating the genome used by the Trena object.
 #'                  Currently, only human and mouse ("hg38","mm10") are supported
-#' @param expressionDataDirectory A string pointing to a collection of RData expression matrices
+#' @parma footprintDatabaseHost,
+#' @param footprintDatabaseNames
+#' @param expressionDirectory A string pointing to a collection of RData expression matrices
+#' @param variantsDirectory A string pointing to a collection of RData variant files
+#' @param covariatesFile  the (optional) name of a covariates files
 #' @param quiet A logical indicating whether or not the Trena object should print output
 #'
 #' @return An object of the TrenaProject class
 #'
 #' @export
 #'
-#' @examples
-#' # Create a Trena object using the human hg38 genome
-#' cola1a <- TrenaProject("COL1A1", "hg38")
 #'
 TrenaProject <- function(supportedGenes,
                          genomeName,
@@ -227,8 +228,8 @@ setMethod('getTranscriptsTable',  'TrenaProject',
 #------------------------------------------------------------------------------------------------------------------------
 #' Get the names of the expression matrices - their names with directory and .RData suffix stripped out
 #'
-#' @rdname getExpressionMatrixName
-#' @aliases getExpressionMatrixName
+#' @rdname getExpressionMatrixNames
+#' @aliases getExpressionMatrixNames
 #'
 #' @param obj An object of class TrenaProject
 #'
@@ -247,11 +248,11 @@ setMethod('getExpressionMatrixNames',  'TrenaProject',
 #------------------------------------------------------------------------------------------------------------------------
 #' Get the a specifc expression matrix
 #'
-#' @rdname getExpressionMatrixName
-#' @aliases getExpressionMatrixName
+#' @rdname getExpressionMatrix
+#' @aliases getExpressionMatrix
 #'
 #' @param obj An object of class TrenaProject
-#' @param datasetName A numeric matrix
+#' @param matrixName A numeric matrix
 #'
 #' @export
 
@@ -297,7 +298,7 @@ setMethod('getVariantDatasetNames', 'TrenaProject',
 #' Get the specified variants table
 #'
 #' @rdname getVariantDataset
-#' @aliases getVariantdataset
+#' @aliases getVariantDataset
 #'
 #' @param obj An object of class TrenaProject
 #' @param datasetName character string, the variant dataset of interest

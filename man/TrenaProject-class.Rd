@@ -12,14 +12,18 @@ TrenaProject(supportedGenes, genomeName, footprintDatabaseHost,
   covariatesFile, quiet)
 }
 \arguments{
+\item{supportedGenes}{a vector of character strings}
+
 \item{genomeName}{A string indicating the genome used by the Trena object.
 Currently, only human and mouse ("hg38","mm10") are supported}
 
+\item{expressionDirectory}{A string pointing to a collection of RData expression matrices}
+
+\item{variantsDirectory}{A string pointing to a collection of RData variant files}
+
+\item{covariatesFile}{the (optional) name of a covariates files}
+
 \item{quiet}{A logical indicating whether or not the Trena object should print output}
-
-\item{geneSymbol}{A character string in standard HUGO nomenclature}
-
-\item{expressionDataDirectory}{A string pointing to a collection of RData expression matrices}
 }
 \value{
 An object of the TrenaProject class
@@ -28,9 +32,4 @@ An object of the TrenaProject class
 TrenaProject and its (projected) subclasses provide convenient containers in which to collect
  trena-related aggregation of a gene's (a hierarchy of classes) including expression data,
 transcript and variant info, genomic and epigenomic context, trena models and/or the means to create them
-}
-\examples{
-# Create a Trena object using the human hg38 genome
-cola1a <- TrenaProject("COL1A1", "hg38")
-
 }

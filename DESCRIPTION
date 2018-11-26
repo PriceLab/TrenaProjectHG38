@@ -5,8 +5,15 @@ Version: 0.99.17
 Date: 2018-11-06
 Author: Paul Shannon
 Maintainer: Paul Shannon<pshannon@systemsbiology.org>
-Description: An abstract base class, providing abstractions for expression, eqtl, footprint, enhancer and variant data
+Imports:
+   trena,
+   methods,
+   DBI,
+   org.Hs.eg.db,
+   RPostgreSQL,
+   RMariaDB
+Description: An abstract base class, providing abstractions for expression, eqtl, footprint, enhancer and variant data.
 Depends: R (>= 3.5.0)
-License: Apache 2.0
+License: Artistic-2.0
 Encoding: UTF-8
 RoxygenNote: 6.1.0
