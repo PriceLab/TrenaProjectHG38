@@ -1,4 +1,4 @@
-####' @import trena
+#' @import trena
 #' @importFrom DBI dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
 #' @importFrom RPostgreSQL dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
 #' @import RPostgreSQL
