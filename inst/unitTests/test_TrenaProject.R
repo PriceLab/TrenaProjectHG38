@@ -3,16 +3,7 @@
 library(TrenaProject)
 library(RUnit)
 #------------------------------------------------------------------------------------------------------------------------
-runTests <- function()
-{
-   test_ctor()
-
-} # runTests
-#------------------------------------------------------------------------------------------------------------------------
-test_ctor <- function()
-{
-   printf("--- test_ctor")
-
+if(!exists("trenaProj")){
    genes <- c("TREM2", "INPP5D")
    genomeName <- "hg38"
 
@@ -26,7 +17,7 @@ test_ctor <- function()
    checkTrue(file.exists(variantsDirectory))
    checkTrue(file.exists(covariatesFile))
 
-   proj <- TrenaProject(supportedGenes=genes,
+   trenaProj <- TrenaProject(supportedGenes=genes,
                         genomeName=genomeName,
                         footprintDatabaseHost=footprintDatabaseHost,
                         footprintDatabaseNames=footprintDatabaseNames,
@@ -34,25 +25,38 @@ test_ctor <- function()
                         variantsDirectory=variantsDirectory,
                         covariatesFile=covariatesFile,
                         quiet=TRUE)
+   } # creating trenaProj for use in multiple functions below
 
-   checkEquals(getSupportedGenes(proj), genes)
-   checkEquals(getFootprintDatabaseHost(proj), footprintDatabaseHost)
-   checkEquals(getFootprintDatabaseNames(proj), footprintDatabaseNames)
+#------------------------------------------------------------------------------------------------------------------------
+runTests <- function()
+{
+   test_ctor()
+   test_getEnhancers()
 
-   checkTrue(is.null(getTargetGene(proj)))
-   setTargetGene(proj, genes[1])
-   checkEquals(getTargetGene(proj), genes[1])
+} # runTests
+#------------------------------------------------------------------------------------------------------------------------
+test_ctor <- function()
+{
+   printf("--- test_ctor")
 
-   tbl.transcripts <- getTranscriptsTable(proj)
+   checkEquals(getSupportedGenes(trenaProj), genes)
+   checkEquals(getFootprintDatabaseHost(trenaProj), footprintDatabaseHost)
+   checkEquals(getFootprintDatabaseNames(trenaProj), footprintDatabaseNames)
+
+   checkTrue(is.null(getTargetGene(trenaProj)))
+   setTargetGene(trenaProj, genes[1])
+   checkEquals(getTargetGene(trenaProj), genes[1])
+
+   tbl.transcripts <- getTranscriptsTable(trenaProj)
    checkTrue(nrow(tbl.transcripts) >= 3)
 
-   checkEquals(getExpressionMatrixNames(proj), c("dummyExpressionSet_1", "dummyExpressionSet_2"))
+   checkEquals(getExpressionMatrixNames(trenaProj), c("dummyExpressionSet_1", "dummyExpressionSet_2"))
 
-   checkTrue(is.matrix(getExpressionMatrix(proj, "dummyExpressionSet_1")))
-   checkTrue(is.matrix(getExpressionMatrix(proj, "dummyExpressionSet_2")))
+   checkTrue(is.matrix(getExpressionMatrix(trenaProj, "dummyExpressionSet_1")))
+   checkTrue(is.matrix(getExpressionMatrix(trenaProj, "dummyExpressionSet_2")))
 
    expected <- c("someGene.region.vcf", "tbl.snp.gwas.minimal")
-   file.list <- getVariantDatasetNames(proj)
+   file.list <- getVariantDatasetNames(trenaProj)
    checkTrue(all(expected %in% file.list))
    #checkTrue(file.exists("someGene.region.vcf"))
 
@@ -61,15 +65,15 @@ test_ctor <- function()
 
    #checkTrue(file.exists(sprintf("%s.RData", file.list[["tbl.snp.gwas.minimal"]])))
 
-   tbl.covariates <- getCovariatesTable(proj)
+   tbl.covariates <- getCovariatesTable(trenaProj)
 
-   tbl.enhancers <- getEnhancers(proj)
+   tbl.enhancers <- getEnhancers(trenaProj)
    checkEquals(colnames(tbl.enhancers), c("chrom", "start", "end", "type", "combinedScore", "geneSymbol"))
 
    checkTrue(nrow(tbl.enhancers) >= 5)
-   checkEquals(unique(tbl.enhancers$geneSymbol), getTargetGene(proj))
+   checkEquals(unique(tbl.enhancers$geneSymbol), getTargetGene(trenaProj))
 
-   tbl.dhs <- getEncodeDHS(proj)
+   tbl.dhs <- getEncodeDHS(trenaProj)
    checkEquals(colnames(tbl.dhs), c("chrom", "chromStart", "chromEnd", "count", "score"))
       # these open chromatin regions bear no necessary relation to the targetGene
       # instead, they span the region of the targetGene-associated enhancers.  check that
@@ -83,20 +87,39 @@ test_ctor <- function()
    checkTrue(all(tbl.dhs$chromEnd <= loc.max))
    checkTrue(all(tbl.dhs$chrom == chromosome))
 
-   tbl.chipseq <- getChipSeq(proj, chrom=chromosome, start=loc.min, end=loc.max, tfs=NA)
+   tbl.chipseq <- getChipSeq(trenaProj, chrom=chromosome, start=loc.min, end=loc.max, tfs=NA)
    checkTrue(nrow(tbl.chipseq) > 2000)
 
    checkEquals(colnames(tbl.chipseq), c("chrom", "start", "endpos", "tf", "name", "strand", "peakStart", "peakEnd"))
 
-   checkEquals(getGeneRegion(proj),                     "chr6:41158506-41163186")
-   checkEquals(getGeneRegion(proj, flankingPercent=20), "chr6:41157570-41164122")
+   checkEquals(getGeneRegion(trenaProj),                     "chr6:41158506-41163186")
+   checkEquals(getGeneRegion(trenaProj, flankingPercent=20), "chr6:41157570-41164122")
 
-   checkEquals(getGeneEnhancersRegion(proj),                     "chr6:41154324-41210533")
-   checkEquals(getGeneEnhancersRegion(proj, flankingPercent=10), "chr6:41148703-41216154")
+   checkEquals(getGeneEnhancersRegion(trenaProj),                     "chr6:41154324-41210533")
+   checkEquals(getGeneEnhancersRegion(trenaProj, flankingPercent=10), "chr6:41148703-41216154")
 
-   vf <- getVariantDatasetNames(proj)
+   vf <- getVariantDatasetNames(trenaProj)
 
 } # test_ctor
+#------------------------------------------------------------------------------------------------------------------------
+test_getEnhancers <- function()
+{
+   printf("--- test_getEnhancers")
+
+   setTargetGene(trenaProj, "TREM2")
+   tbl.trem2 <- getEnhancers(trenaProj)
+   checkTrue(all(tbl.trem2$geneSymbol == "TREM2"))
+
+   tbl.mef2c <- getEnhancers(trenaProj, "MEF2C")
+   checkTrue(all(tbl.mef2c$geneSymbol == "MEF2C"))
+
+   tbl.trem2.again <- getEnhancers(trenaProj, "TREM2")
+   checkEquals(tbl.trem2, tbl.trem2.again)
+
+   tbl.bogus <- getEnhancers(trenaProj, "bogus99")
+   checkEquals(nrow(tbl.bogus), 0)
+
+} # test_getEnhancers
 #------------------------------------------------------------------------------------------------------------------------
 if(!interactive())
    runTests()

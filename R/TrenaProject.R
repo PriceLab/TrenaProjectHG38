@@ -39,7 +39,7 @@ setGeneric('getExpressionMatrixNames',  signature='obj', function(obj) standardG
 setGeneric('getExpressionMatrix',       signature='obj', function(obj, matrixName) standardGeneric ('getExpressionMatrix'))
 setGeneric('getVariantDatasetNames',    signature='obj', function(obj) standardGeneric ('getVariantDatasetNames'))
 setGeneric('getVariantDataset',         signature='obj', function(obj, datasetName) standardGeneric ('getVariantDataset'))
-setGeneric('getEnhancers',              signature='obj', function(obj, targetGene) standardGeneric ('getEnhancers'))
+setGeneric('getEnhancers',              signature='obj', function(obj, targetGene=NA) standardGeneric ('getEnhancers'))
 setGeneric('getEncodeDHS',              signature='obj', function(obj, targetGene) standardGeneric ('getEncodeDHS'))
 setGeneric('getChipSeq',                signature='obj', function(obj, chrom, start, end, tfs=NA) standardGeneric ('getChipSeq'))
 setGeneric('getCovariatesTable',        signature='obj', function(obj) standardGeneric ('getCovariatesTable'))
@@ -319,13 +319,17 @@ setMethod('getVariantDataset', 'TrenaProject',
 #' @aliases getEnhancers
 #'
 #' @param obj An object of class TrenaProject
+#' @param targetGene default NA, in which case the current object's targetGene is used.
+#'
+#' @seealso setTargetGene
 #'
 #' @export
 
 setMethod('getEnhancers',  'TrenaProject',
 
-     function(obj){
-        targetGene <- getTargetGene(obj)
+     function(obj, targetGene=NA_character_){
+        if(is.na(targetGene))
+           targetGene <- getTargetGene(obj)
         stopifnot(!is.null(targetGene))
         tbl.enhancers <- data.frame() # suppress R CMD CHECK NOTE
         full.path <- system.file(package="TrenaProject", "extdata", "epigenome", "geneHancer.v4.7.allGenes.RData")
