@@ -4,8 +4,10 @@ library(TrenaProject)
 library(RUnit)
 #------------------------------------------------------------------------------------------------------------------------
 if(!exists("trenaProj")){
+
    genes <- c("TREM2", "INPP5D")
    genomeName <- "hg38"
+   geneInfoTable.path <- system.file(package="TrenaProject", "extdata", "geneInfoTable.RData")
 
    footprintDatabaseHost <- "khaleesi.systemsbiology.net"
    footprintDatabaseNames <- c("brain_hint_20, brain_wellington_16")
@@ -18,13 +20,14 @@ if(!exists("trenaProj")){
    checkTrue(file.exists(covariatesFile))
 
    trenaProj <- TrenaProject(supportedGenes=genes,
-                        genomeName=genomeName,
-                        footprintDatabaseHost=footprintDatabaseHost,
-                        footprintDatabaseNames=footprintDatabaseNames,
-                        expressionDirectory=expressionDirectory,
-                        variantsDirectory=variantsDirectory,
-                        covariatesFile=covariatesFile,
-                        quiet=TRUE)
+                             genomeName=genomeName,
+                             geneInfoTable.path=geneInfoTable.path,
+                             footprintDatabaseHost=footprintDatabaseHost,
+                             footprintDatabaseNames=footprintDatabaseNames,
+                             expressionDirectory=expressionDirectory,
+                             variantsDirectory=variantsDirectory,
+                             covariatesFile=covariatesFile,
+                             quiet=TRUE)
    } # creating trenaProj for use in multiple functions below
 
 #------------------------------------------------------------------------------------------------------------------------
@@ -99,6 +102,9 @@ test_ctor <- function()
    checkEquals(getGeneEnhancersRegion(trenaProj, flankingPercent=10), "chr6:41148703-41216154")
 
    vf <- getVariantDatasetNames(trenaProj)
+
+   checkEquals(dim(getGeneInfoTable(trenaProj)), c(0,0))
+   checkTrue(!recognizedGene(trenaProj, "bogusGene"))      # only genes in the tbl.geneInfo are recognized
 
 } # test_ctor
 #------------------------------------------------------------------------------------------------------------------------

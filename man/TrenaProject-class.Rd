@@ -7,9 +7,9 @@
 \alias{TrenaProject}
 \title{TrenaProject}
 \usage{
-TrenaProject(supportedGenes, genomeName, footprintDatabaseHost,
-  footprintDatabaseNames, expressionDirectory, variantsDirectory,
-  covariatesFile, quiet)
+TrenaProject(supportedGenes, genomeName, geneInfoTable.path,
+  footprintDatabaseHost, footprintDatabaseNames, expressionDirectory,
+  variantsDirectory, covariatesFile, quiet)
 }
 \arguments{
 \item{supportedGenes}{a vector of character strings}

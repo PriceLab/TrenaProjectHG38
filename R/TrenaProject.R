@@ -16,6 +16,7 @@
 .TrenaProject <- setClass ("TrenaProject",
                         representation = representation(
                            supportedGenes="character",
+                           geneInfoTable="data.frame",
                            genomeName="character",
                            footprintDatabaseHost="character",
                            footprintDatabaseNames="character",
@@ -32,6 +33,7 @@
 setGeneric('getSupportedGenes',         signature='obj', function(obj) standardGeneric('getSupportedGenes'))
 setGeneric('setTargetGene',             signature='obj', function(obj, targetGene) standardGeneric('setTargetGene'))
 setGeneric('getTargetGene',             signature='obj', function(obj) standardGeneric('getTargetGene'))
+setGeneric('getGeneInfoTable',          signature='obj', function(obj) standardGeneric('getGeneInfoTable'))
 setGeneric('getFootprintDatabaseHost',  signature='obj', function(obj) standardGeneric ('getFootprintDatabaseHost'))
 setGeneric('getFootprintDatabaseNames', signature='obj', function(obj) standardGeneric ('getFootprintDatabaseNames'))
 setGeneric('getTranscriptsTable',       signature='obj', function(obj) standardGeneric ('getTranscriptsTable'))
@@ -45,6 +47,7 @@ setGeneric('getChipSeq',                signature='obj', function(obj, chrom, st
 setGeneric('getCovariatesTable',        signature='obj', function(obj) standardGeneric ('getCovariatesTable'))
 setGeneric('getGeneRegion',             signature='obj', function(obj, flankingPercent=0) standardGeneric ('getGeneRegion'))
 setGeneric('getGeneEnhancersRegion',    signature='obj', function(obj, flankingPercent=0) standardGeneric ('getGeneEnhancersRegion'))
+setGeneric('recognizedGene',            signature='obj', function(obj, geneName) standardGeneric ('recognizedGene'))
 #------------------------------------------------------------------------------------------------------------------------
 #' Define an object of class Trena
 #'
@@ -72,6 +75,7 @@ setGeneric('getGeneEnhancersRegion',    signature='obj', function(obj, flankingP
 #'
 TrenaProject <- function(supportedGenes,
                          genomeName,
+                         geneInfoTable.path,
                          footprintDatabaseHost,
                          footprintDatabaseNames,
                          expressionDirectory,
@@ -85,11 +89,12 @@ TrenaProject <- function(supportedGenes,
       # gene-specific information, freshly assigned with every call to setTargetGene
    state$targetGene <- NULL
    state$tbl.transcripts <- NULL
-   #state$enhancers <- NULL
-   #state$dhs <- NULL
-   #state$chipSeq <- NULL
+   stopifnot(file.exists(geneInfoTable.path))
+   tbl.name <- load(geneInfoTable.path)
+   stopifnot(tbl.name == "tbl.geneInfo")
 
    .TrenaProject(supportedGenes=supportedGenes,
+                 geneInfoTable=tbl.geneInfo,
                  genomeName=genomeName,
                  footprintDatabaseHost=footprintDatabaseHost,
                  footprintDatabaseNames=footprintDatabaseNames,
@@ -463,6 +468,44 @@ setMethod('getGeneEnhancersRegion',  'TrenaProject',
              flank <- round(span * (flankingPercent/100))
              sprintf("%s:%d-%d", chrom, start - flank, end + flank)
              })
+
+#------------------------------------------------------------------------------------------------------------------------
+#' return the data.frame with gene ids, chromosome, tss of the primary transcript, and strand for all genes in the project
+#'
+#' @rdname getGeneInfoTable
+#' @aliases getGeneInfoTable
+#'
+#' @param obj An object of class TrenaProject
+#'
+#' @return a data.frame with gene names as rownames
+#'
+#' @export
+
+setMethod('getGeneInfoTable',  'TrenaProject',
+
+   function(obj){
+      return(obj@geneInfoTable)
+      })
+
+#------------------------------------------------------------------------------------------------------------------------
+#' Do we have expression data for the suggested gene?
+#'
+#' @rdname recognizedGene
+#' @aliases recognizedGene
+#'
+#' @param obj An object of class TrenaProject
+#' @param geneName A character string in the same protocol as the project's expression matrices
+#'
+#' @return a chrom.loc (chrom:start-end) string
+#'
+#' @export
+
+setMethod('recognizedGene',  'TrenaProject',
+
+   function(obj, geneName){
+      tbl.geneInfo <-
+      return(geneName %in% rownames(getGeneInfoTable(obj)))
+      })
 
 #------------------------------------------------------------------------------------------------------------------------
 
