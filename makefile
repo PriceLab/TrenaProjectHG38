@@ -9,7 +9,7 @@ build:
 	(cd ..; R CMD build --no-build-vignettes TrenaProject)
 
 install:
-	(cd ..; R CMD INSTALL TrenaProject)
+	(cd ..; R CMD INSTALL --no-test-load TrenaProject)
 
 check:
 	(cd ..; R CMD check `ls -t TrenaProject_* | head -1`)

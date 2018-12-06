@@ -31,7 +31,8 @@
 
 #------------------------------------------------------------------------------------------------------------------------
 setGeneric('getSupportedGenes',         signature='obj', function(obj) standardGeneric('getSupportedGenes'))
-setGeneric('setTargetGene',             signature='obj', function(obj, targetGene) standardGeneric('setTargetGene'))
+setGeneric('setTargetGene',             signature='obj', function(obj, targetGene, curatedGenesOnly=FALSE)
+              standardGeneric('setTargetGene'))
 setGeneric('getTargetGene',             signature='obj', function(obj) standardGeneric('getTargetGene'))
 setGeneric('getGeneInfoTable',          signature='obj', function(obj) standardGeneric('getGeneInfoTable'))
 setGeneric('getFootprintDatabaseHost',  signature='obj', function(obj) standardGeneric ('getFootprintDatabaseHost'))
@@ -151,9 +152,11 @@ setMethod('getSupportedGenes', 'TrenaProject',
 
 setMethod('setTargetGene', 'TrenaProject',
 
-   function(obj, targetGene) {
-      if(!all(is.na(getSupportedGenes(obj))))
-         stopifnot(targetGene %in% getSupportedGenes(obj))
+   function(obj, targetGene, curatedGenesOnly=FALSE) {
+      if(curatedGenesOnly){
+         if(!all(is.na(getSupportedGenes(obj))))
+            stopifnot(targetGene %in% getSupportedGenes(obj))
+         }
       tbl.transcripts <- .getCodingTranscripts(targetGene, obj@genomeName)
       obj@state$targetGene <- targetGene
       obj@state$tbl.transcripts <- tbl.transcripts

@@ -46,12 +46,28 @@ test_ctor <- function()
    checkEquals(getFootprintDatabaseHost(trenaProj), footprintDatabaseHost)
    checkEquals(getFootprintDatabaseNames(trenaProj), footprintDatabaseNames)
 
-   checkTrue(is.null(getTargetGene(trenaProj)))
+   printf("--- testing get/setTargetGene")
+   #checkTrue(is.null(getTargetGene(trenaProj)))
    setTargetGene(trenaProj, genes[1])
    checkEquals(getTargetGene(trenaProj), genes[1])
 
+   printf("--- getting transcript info for %s", genes[1])
+
    tbl.transcripts <- getTranscriptsTable(trenaProj)
    checkTrue(nrow(tbl.transcripts) >= 3)
+
+
+   printf("--- testing get/setTargetGene")
+   #checkTrue(is.null(getTargetGene(trenaProj)))
+   setTargetGene(trenaProj, "PIGF")           # a placental gene, not in the IGAP project
+   checkEquals(getTargetGene(trenaProj), "PIGF")
+
+   printf("--- getting transcript info for %s", "PIGF")
+   tbl.transcripts <- getTranscriptsTable(trenaProj)
+   checkTrue(nrow(tbl.transcripts) >= 3)
+
+     # return to TREM2, whose coordinates we check below
+   setTargetGene(trenaProj, genes[1])
 
    checkEquals(getExpressionMatrixNames(trenaProj), c("dummyExpressionSet_1", "dummyExpressionSet_2"))
 

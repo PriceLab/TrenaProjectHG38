@@ -6,7 +6,8 @@
 \alias{setTargetGene}
 \title{Set a single gene for analysis}
 \usage{
-\S4method{setTargetGene}{TrenaProject}(obj, targetGene)
+\S4method{setTargetGene}{TrenaProject}(obj, targetGene,
+  curatedGenesOnly = FALSE)
 }
 \arguments{
 \item{obj}{An object of class TrenaProject}
