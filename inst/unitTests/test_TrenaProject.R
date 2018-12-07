@@ -35,6 +35,7 @@ runTests <- function()
 {
    test_ctor()
    test_getEnhancers()
+   test_recognizedGene()
 
 } # runTests
 #------------------------------------------------------------------------------------------------------------------------
@@ -119,7 +120,9 @@ test_ctor <- function()
 
    vf <- getVariantDatasetNames(trenaProj)
 
-   checkEquals(dim(getGeneInfoTable(trenaProj)), c(0,0))
+   checkTrue(nrow(getGeneInfoTable(trenaProj)) > 15000)
+   checkTrue(ncol(getGeneInfoTable(trenaProj)) >= 10)
+
    checkTrue(!recognizedGene(trenaProj, "bogusGene"))      # only genes in the tbl.geneInfo are recognized
 
 } # test_ctor
@@ -142,6 +145,18 @@ test_getEnhancers <- function()
    checkEquals(nrow(tbl.bogus), 0)
 
 } # test_getEnhancers
+#------------------------------------------------------------------------------------------------------------------------
+test_recognizedGene <- function()
+{
+   printf("--- test_recognizedGene")
+   library(TrenaProjectIGAP)
+   igap <- TrenaProjectIGAP()
+
+   checkTrue(recognizedGene(igap, "TREM2"))
+   checkTrue(!recognizedGene(igap, "trem2"))
+   checkTrue(!recognizedGene(igap, "BOGUS"))
+
+} # test_recognizedGene
 #------------------------------------------------------------------------------------------------------------------------
 if(!interactive())
    runTests()

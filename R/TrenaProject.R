@@ -90,8 +90,9 @@ TrenaProject <- function(supportedGenes,
       # gene-specific information, freshly assigned with every call to setTargetGene
    state$targetGene <- NULL
    state$tbl.transcripts <- NULL
-   stopifnot(file.exists(geneInfoTable.path))
-   tbl.name <- load(geneInfoTable.path)
+   #stopifnot(file.exists(geneInfoTable.path))
+      # tbl.geneInfo is temporarily stolen from TrenaProjectIGAP.
+   tbl.name <-load(system.file(package="TrenaProject", "extdata", "geneInfoTable.RData"))
    stopifnot(tbl.name == "tbl.geneInfo")
 
    .TrenaProject(supportedGenes=supportedGenes,
@@ -161,7 +162,7 @@ setMethod('setTargetGene', 'TrenaProject',
       obj@state$targetGene <- targetGene
       obj@state$tbl.transcripts <- tbl.transcripts
       roi <- getGeneEnhancersRegion(obj)
-      message(sprintf("new roi for %s: %s", targetGene, roi))
+      #message(sprintf("new roi for %s: %s", targetGene, roi))
       chromLoc <- trena::parseChromLocString(roi)
       })
 
@@ -491,7 +492,7 @@ setMethod('getGeneInfoTable',  'TrenaProject',
       })
 
 #------------------------------------------------------------------------------------------------------------------------
-#' Do we have expression data for the suggested gene?
+#' Do we have expression data for the suggested gene? genomic and epigenetic information?
 #'
 #' @rdname recognizedGene
 #' @aliases recognizedGene
@@ -506,8 +507,8 @@ setMethod('getGeneInfoTable',  'TrenaProject',
 setMethod('recognizedGene',  'TrenaProject',
 
    function(obj, geneName){
-      tbl.geneInfo <-
-      return(geneName %in% rownames(getGeneInfoTable(obj)))
+      tbl.geneInfo <-getGeneInfoTable(obj)
+      return(geneName %in% tbl.geneInfo$geneSymbol)
       })
 
 #------------------------------------------------------------------------------------------------------------------------
