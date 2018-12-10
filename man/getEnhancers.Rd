@@ -6,11 +6,16 @@
 \alias{getEnhancers}
 \title{Get all the enhancer regions for the gene}
 \usage{
-\S4method{getEnhancers}{TrenaProject}(obj)
+\S4method{getEnhancers}{TrenaProject}(obj, targetGene = NA_character_)
 }
 \arguments{
 \item{obj}{An object of class TrenaProject}
+
+\item{targetGene}{default NA, in which case the current object's targetGene is used.}
 }
 \description{
 Get all the enhancer regions for the gene
+}
+\seealso{
+setTargetGene
 }

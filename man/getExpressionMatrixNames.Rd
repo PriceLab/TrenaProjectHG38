@@ -3,23 +3,14 @@
 \docType{methods}
 \name{getExpressionMatrixNames,TrenaProject-method}
 \alias{getExpressionMatrixNames,TrenaProject-method}
-\alias{getExpressionMatrixName}
-\alias{getExpressionMatrix,TrenaProject-method}
+\alias{getExpressionMatrixNames}
 \title{Get the names of the expression matrices - their names with directory and .RData suffix stripped out}
 \usage{
 \S4method{getExpressionMatrixNames}{TrenaProject}(obj)
-
-\S4method{getExpressionMatrix}{TrenaProject}(obj, matrixName)
 }
 \arguments{
 \item{obj}{An object of class TrenaProject}
-
-\item{obj}{An object of class TrenaProject}
-
-\item{datasetName}{A numeric matrix}
 }
 \description{
 Get the names of the expression matrices - their names with directory and .RData suffix stripped out
-
-Get the a specifc expression matrix
 }

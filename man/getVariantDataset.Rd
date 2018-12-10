@@ -3,7 +3,7 @@
 \docType{methods}
 \name{getVariantDataset,TrenaProject-method}
 \alias{getVariantDataset,TrenaProject-method}
-\alias{getVariantdataset}
+\alias{getVariantDataset}
 \title{Get the specified variants table}
 \usage{
 \S4method{getVariantDataset}{TrenaProject}(obj, datasetName)

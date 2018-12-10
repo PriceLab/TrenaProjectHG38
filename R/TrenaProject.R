@@ -1,8 +1,9 @@
 #' @import trena
-#' @importFrom DBI   dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
+#' @importFrom DBI dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
 #' @importFrom RPostgreSQL dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
 #' @import RPostgreSQL
 #' @import org.Hs.eg.db
+#' @importFrom methods new
 #'
 #' @title TrenaProject
 #------------------------------------------------------------------------------------------------------------------------
@@ -10,11 +11,12 @@
 #' @rdname TrenaProject-class
 #' @aliases TrenaProject
 #'
-#' @import methods
+## @import methods
 
 .TrenaProject <- setClass ("TrenaProject",
                         representation = representation(
                            supportedGenes="character",
+                           geneInfoTable="data.frame",
                            genomeName="character",
                            footprintDatabaseHost="character",
                            footprintDatabaseNames="character",
@@ -29,8 +31,10 @@
 
 #------------------------------------------------------------------------------------------------------------------------
 setGeneric('getSupportedGenes',         signature='obj', function(obj) standardGeneric('getSupportedGenes'))
-setGeneric('setTargetGene',             signature='obj', function(obj, targetGene) standardGeneric('setTargetGene'))
+setGeneric('setTargetGene',             signature='obj', function(obj, targetGene, curatedGenesOnly=FALSE)
+              standardGeneric('setTargetGene'))
 setGeneric('getTargetGene',             signature='obj', function(obj) standardGeneric('getTargetGene'))
+setGeneric('getGeneInfoTable',          signature='obj', function(obj) standardGeneric('getGeneInfoTable'))
 setGeneric('getFootprintDatabaseHost',  signature='obj', function(obj) standardGeneric ('getFootprintDatabaseHost'))
 setGeneric('getFootprintDatabaseNames', signature='obj', function(obj) standardGeneric ('getFootprintDatabaseNames'))
 setGeneric('getTranscriptsTable',       signature='obj', function(obj) standardGeneric ('getTranscriptsTable'))
@@ -38,12 +42,13 @@ setGeneric('getExpressionMatrixNames',  signature='obj', function(obj) standardG
 setGeneric('getExpressionMatrix',       signature='obj', function(obj, matrixName) standardGeneric ('getExpressionMatrix'))
 setGeneric('getVariantDatasetNames',    signature='obj', function(obj) standardGeneric ('getVariantDatasetNames'))
 setGeneric('getVariantDataset',         signature='obj', function(obj, datasetName) standardGeneric ('getVariantDataset'))
-setGeneric('getEnhancers',              signature='obj', function(obj, targetGene) standardGeneric ('getEnhancers'))
+setGeneric('getEnhancers',              signature='obj', function(obj, targetGene=NA) standardGeneric ('getEnhancers'))
 setGeneric('getEncodeDHS',              signature='obj', function(obj, targetGene) standardGeneric ('getEncodeDHS'))
 setGeneric('getChipSeq',                signature='obj', function(obj, chrom, start, end, tfs=NA) standardGeneric ('getChipSeq'))
 setGeneric('getCovariatesTable',        signature='obj', function(obj) standardGeneric ('getCovariatesTable'))
 setGeneric('getGeneRegion',             signature='obj', function(obj, flankingPercent=0) standardGeneric ('getGeneRegion'))
 setGeneric('getGeneEnhancersRegion',    signature='obj', function(obj, flankingPercent=0) standardGeneric ('getGeneEnhancersRegion'))
+setGeneric('recognizedGene',            signature='obj', function(obj, geneName) standardGeneric ('recognizedGene'))
 #------------------------------------------------------------------------------------------------------------------------
 #' Define an object of class Trena
 #'
@@ -54,22 +59,24 @@ setGeneric('getGeneEnhancersRegion',    signature='obj', function(obj, flankingP
 #'
 #' @rdname TrenaProject-class
 #'
-#' @param geneSymbol  A character string in standard HUGO nomenclature
+#' @param supportedGenes a vector of character strings
 #' @param genomeName A string indicating the genome used by the Trena object.
 #'                  Currently, only human and mouse ("hg38","mm10") are supported
-#' @param expressionDataDirectory A string pointing to a collection of RData expression matrices
+#' @param footprintDatabaseHost Character string (e.g., "khaleesi.systemsbiology.net")
+#' @param footprintDatabaseNames Character string (e.g., "hint_brain_20")
+#' @param expressionDirectory A string pointing to a collection of RData expression matrices
+#' @param variantsDirectory A string pointing to a collection of RData variant files
+#' @param covariatesFile  the (optional) name of a covariates files
 #' @param quiet A logical indicating whether or not the Trena object should print output
 #'
 #' @return An object of the TrenaProject class
 #'
 #' @export
 #'
-#' @examples
-#' # Create a Trena object using the human hg38 genome
-#' cola1a <- TrenaProject("COL1A1", "hg38")
 #'
 TrenaProject <- function(supportedGenes,
                          genomeName,
+                         geneInfoTable.path,
                          footprintDatabaseHost,
                          footprintDatabaseNames,
                          expressionDirectory,
@@ -83,11 +90,13 @@ TrenaProject <- function(supportedGenes,
       # gene-specific information, freshly assigned with every call to setTargetGene
    state$targetGene <- NULL
    state$tbl.transcripts <- NULL
-   #state$enhancers <- NULL
-   #state$dhs <- NULL
-   #state$chipSeq <- NULL
+   #stopifnot(file.exists(geneInfoTable.path))
+      # tbl.geneInfo is temporarily stolen from TrenaProjectIGAP.
+   tbl.name <-load(system.file(package="TrenaProject", "extdata", "geneInfoTable.RData"))
+   stopifnot(tbl.name == "tbl.geneInfo")
 
    .TrenaProject(supportedGenes=supportedGenes,
+                 geneInfoTable=tbl.geneInfo,
                  genomeName=genomeName,
                  footprintDatabaseHost=footprintDatabaseHost,
                  footprintDatabaseNames=footprintDatabaseNames,
@@ -144,20 +153,17 @@ setMethod('getSupportedGenes', 'TrenaProject',
 
 setMethod('setTargetGene', 'TrenaProject',
 
-   function(obj, targetGene) {
-      if(!all(is.na(getSupportedGenes(obj))))
-         stopifnot(targetGene %in% getSupportedGenes(obj))
+   function(obj, targetGene, curatedGenesOnly=FALSE) {
+      if(curatedGenesOnly){
+         if(!all(is.na(getSupportedGenes(obj))))
+            stopifnot(targetGene %in% getSupportedGenes(obj))
+         }
       tbl.transcripts <- .getCodingTranscripts(targetGene, obj@genomeName)
       obj@state$targetGene <- targetGene
       obj@state$tbl.transcripts <- tbl.transcripts
       roi <- getGeneEnhancersRegion(obj)
-      message(sprintf("new roi for %s: %s", targetGene, roi))
+      #message(sprintf("new roi for %s: %s", targetGene, roi))
       chromLoc <- trena::parseChromLocString(roi)
-      #if(!obj@quiet){
-      #   message(sprintf("starting chipSeq request"))
-      #   obj@state$chipSeq <- getChipSeq(obj, chromLoc$chrom, chromLoc$start, chromLoc$end, tfs=NA)
-      #   message(sprintf("ending chipSeq request"))
-      #   } # if !quiet
       })
 
 #------------------------------------------------------------------------------------------------------------------------
@@ -227,8 +233,8 @@ setMethod('getTranscriptsTable',  'TrenaProject',
 #------------------------------------------------------------------------------------------------------------------------
 #' Get the names of the expression matrices - their names with directory and .RData suffix stripped out
 #'
-#' @rdname getExpressionMatrixName
-#' @aliases getExpressionMatrixName
+#' @rdname getExpressionMatrixNames
+#' @aliases getExpressionMatrixNames
 #'
 #' @param obj An object of class TrenaProject
 #'
@@ -247,11 +253,11 @@ setMethod('getExpressionMatrixNames',  'TrenaProject',
 #------------------------------------------------------------------------------------------------------------------------
 #' Get the a specifc expression matrix
 #'
-#' @rdname getExpressionMatrixName
-#' @aliases getExpressionMatrixName
+#' @rdname getExpressionMatrix
+#' @aliases getExpressionMatrix
 #'
 #' @param obj An object of class TrenaProject
-#' @param datasetName A numeric matrix
+#' @param matrixName A numeric matrix
 #'
 #' @export
 
@@ -267,6 +273,7 @@ setMethod('getExpressionMatrix',  'TrenaProject',
        filename <- sprintf("%s.RData", matrixName)
        full.path <- file.path(obj@expressionDirectory, filename)
        stopifnot(file.exists(full.path))
+       mtx <- NULL
        eval(parse(text=paste("mtx <- ", load(full.path))))
        invisible(mtx)
         })
@@ -297,7 +304,7 @@ setMethod('getVariantDatasetNames', 'TrenaProject',
 #' Get the specified variants table
 #'
 #' @rdname getVariantDataset
-#' @aliases getVariantdataset
+#' @aliases getVariantDataset
 #'
 #' @param obj An object of class TrenaProject
 #' @param datasetName character string, the variant dataset of interest
@@ -309,6 +316,7 @@ setMethod('getVariantDataset', 'TrenaProject',
     function(obj, datasetName){
         stopifnot(!obj@variantsDirectory == "/dev/null")
         file.name <- sprintf("%s.RData", file.path(obj@variantsDirectory, datasetName))
+        tbl <- NULL
         eval(parse(text=sprintf("tbl <- %s", load(file.name))))
         tbl
         })
@@ -320,17 +328,23 @@ setMethod('getVariantDataset', 'TrenaProject',
 #' @aliases getEnhancers
 #'
 #' @param obj An object of class TrenaProject
+#' @param targetGene default NA, in which case the current object's targetGene is used.
+#'
+#' @seealso setTargetGene
 #'
 #' @export
 
 setMethod('getEnhancers',  'TrenaProject',
 
-     function(obj){
-        targetGene <- getTargetGene(obj)
+     function(obj, targetGene=NA_character_){
+        if(is.na(targetGene))
+           targetGene <- getTargetGene(obj)
         stopifnot(!is.null(targetGene))
-        full.path <- system.file(package="TrenaProject", "extdata", "geneHancer.v4.7.allGenes.RData")
+        tbl.enhancers <- data.frame() # suppress R CMD CHECK NOTE
+        full.path <- system.file(package="TrenaProject", "extdata", "epigenome", "geneHancer.v4.7.allGenes.RData")
         stopifnot(file.exists(full.path))
         load(full.path)
+        geneSymbol <- NULL
         subset(tbl.enhancers, geneSymbol == targetGene)
         })
 
@@ -378,6 +392,7 @@ setMethod('getChipSeq',  'TrenaProject',
        db <- dbConnect(PostgreSQL(), user= "trena", password="trena", dbname="hg38", host="khaleesi")
        query <- sprintf("select * from chipseq where chrom='%s' and start >= %d and endpos <= %d", chrom, start, end)
        tbl.chipSeq <- dbGetQuery(db, query)
+       tf <- NULL  # quiet R CMD CHECK NOTE
        if(!obj@quiet) message(sprintf("tfs before filtering: %d", length (tbl.chipSeq$tf)))
        if(!(all(is.na(tfs))))
          tbl.chipSeq <- subset(tbl.chipSeq, tf %in% tfs)
@@ -424,6 +439,7 @@ setMethod('getCovariatesTable', 'TrenaProject',
 setMethod('getGeneRegion',  'TrenaProject',
           function(obj, flankingPercent=0){
              tbl.transcripts <- getTranscriptsTable(obj)
+             moleculetype <- NULL
              tbl.gene <- subset(tbl.transcripts, moleculetype=="gene")[1,]
              chrom <- tbl.gene$chr
              start <- tbl.gene$start
@@ -456,6 +472,44 @@ setMethod('getGeneEnhancersRegion',  'TrenaProject',
              flank <- round(span * (flankingPercent/100))
              sprintf("%s:%d-%d", chrom, start - flank, end + flank)
              })
+
+#------------------------------------------------------------------------------------------------------------------------
+#' return the data.frame with gene ids, chromosome, tss of the primary transcript, and strand for all genes in the project
+#'
+#' @rdname getGeneInfoTable
+#' @aliases getGeneInfoTable
+#'
+#' @param obj An object of class TrenaProject
+#'
+#' @return a data.frame with gene names as rownames
+#'
+#' @export
+
+setMethod('getGeneInfoTable',  'TrenaProject',
+
+   function(obj){
+      return(obj@geneInfoTable)
+      })
+
+#------------------------------------------------------------------------------------------------------------------------
+#' Do we have expression data for the suggested gene? genomic and epigenetic information?
+#'
+#' @rdname recognizedGene
+#' @aliases recognizedGene
+#'
+#' @param obj An object of class TrenaProject
+#' @param geneName A character string in the same protocol as the project's expression matrices
+#'
+#' @return a chrom.loc (chrom:start-end) string
+#'
+#' @export
+
+setMethod('recognizedGene',  'TrenaProject',
+
+   function(obj, geneName){
+      tbl.geneInfo <-getGeneInfoTable(obj)
+      return(geneName %in% tbl.geneInfo$geneSymbol)
+      })
 
 #------------------------------------------------------------------------------------------------------------------------
 
