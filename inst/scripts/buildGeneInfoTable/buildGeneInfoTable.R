@@ -1,7 +1,18 @@
 library(biomaRt)
 library(org.Hs.eg.db)
 
-ens.genes <- x <- select(org.Hs.eg.db, keys=keys(org.Hs.egENSEMBL), keytype="ENTREZID", columns="ENSEMBL")$ENSEMBL
+wash7p.unprocessed_pseudogene <- "ENSG00000227232"
+#subset(tbl.geneInfo, ensg=="ENSG00000227232")
+#           ensg chrom start   end   tss strand geneSymbol entrez    appris   tsl      transcript                   type
+#ENSG00000227232  chr1 14404 29570 29570     -1     WASH7P 653635 C_missing tslNA ENST00000488147 unprocessed_pseudogene
+
+
+# ens.genes <- x <- select(org.Hs.eg.db, keys=keys(org.Hs.egENSEMBL), keytype="ENTREZID", columns="ENSEMBL")$ENSEMBL
+load("ensg.all.RData")
+ens.genes <- ensg.all
+length(ens.genes)
+
+
 deleters <- which(is.na(ens.genes))
 length(deleters)
 if(length(deleters) > 0)
