@@ -341,7 +341,7 @@ setMethod('getEnhancers',  'TrenaProject',
            targetGene <- getTargetGene(obj)
         stopifnot(!is.null(targetGene))
         tbl.enhancers <- data.frame() # suppress R CMD CHECK NOTE
-        full.path <- system.file(package="TrenaProject", "extdata", "epigenome", "geneHancer.v4.7.allGenes.RData")
+        full.path <- system.file(package="TrenaProject", "extdata", "genomeAnnotation", "geneHancer.v4.7.allGenes.RData")
         stopifnot(file.exists(full.path))
         load(full.path)
         geneSymbol <- NULL

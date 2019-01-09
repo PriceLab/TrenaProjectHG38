@@ -1,8 +1,8 @@
 Package: TrenaProject
 Type: Package
 Title: TrenaProject - an abstract base class
-Version: 0.99.25
-Date: 2018-12-11
+Version: 0.99.27
+Date: 2019-01-09
 Author: Paul Shannon
 Maintainer: Paul Shannon<pshannon@systemsbiology.org>
 Imports:

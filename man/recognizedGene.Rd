@@ -4,7 +4,7 @@
 \name{recognizedGene,TrenaProject-method}
 \alias{recognizedGene,TrenaProject-method}
 \alias{recognizedGene}
-\title{Do we have expression data for the suggested gene?}
+\title{Do we have expression data for the suggested gene? genomic and epigenetic information?}
 \usage{
 \S4method{recognizedGene}{TrenaProject}(obj, geneName)
 }
@@ -17,5 +17,5 @@
 a chrom.loc (chrom:start-end) string
 }
 \description{
-Do we have expression data for the suggested gene?
+Do we have expression data for the suggested gene? genomic and epigenetic information?
 }
