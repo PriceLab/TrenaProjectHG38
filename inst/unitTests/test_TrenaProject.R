@@ -36,6 +36,7 @@ runTests <- function()
    test_ctor()
    test_getEnhancers()
    test_recognizedGene()
+   test_getPrimaryTranscriptInfo()
 
 } # runTests
 #------------------------------------------------------------------------------------------------------------------------
@@ -157,6 +158,17 @@ test_recognizedGene <- function()
    checkTrue(!recognizedGene(igap, "BOGUS"))
 
 } # test_recognizedGene
+#------------------------------------------------------------------------------------------------------------------------
+test_getPrimaryTranscriptInfo <- function()
+{
+   printf("--- test_getPrimaryTranscriptInfo")
+
+   checkEquals(getPrimaryTranscriptInfo(trenaProj, "CRH")$tss, 66178725)
+
+   setTargetGene(trenaProj, "TREM2")
+   checkEquals(getPrimaryTranscriptInfo(trenaProj)$tss, 41163176)
+
+} # test_getPrimaryTranscriptInfo
 #------------------------------------------------------------------------------------------------------------------------
 if(!interactive())
    runTests()

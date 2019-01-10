@@ -38,6 +38,7 @@ setGeneric('getGeneInfoTable',          signature='obj', function(obj) standardG
 setGeneric('getFootprintDatabaseHost',  signature='obj', function(obj) standardGeneric ('getFootprintDatabaseHost'))
 setGeneric('getFootprintDatabaseNames', signature='obj', function(obj) standardGeneric ('getFootprintDatabaseNames'))
 setGeneric('getTranscriptsTable',       signature='obj', function(obj) standardGeneric ('getTranscriptsTable'))
+setGeneric('getPrimaryTranscriptInfo',  signature='obj', function(obj, targetGene=NA) standardGeneric ('getPrimaryTranscriptInfo'))
 setGeneric('getExpressionMatrixNames',  signature='obj', function(obj) standardGeneric ('getExpressionMatrixNames'))
 setGeneric('getExpressionMatrix',       signature='obj', function(obj, matrixName) standardGeneric ('getExpressionMatrix'))
 setGeneric('getVariantDatasetNames',    signature='obj', function(obj) standardGeneric ('getVariantDatasetNames'))
@@ -212,6 +213,35 @@ setMethod('getFootprintDatabaseNames', 'TrenaProject',
 
    function(obj) {
       obj@footprintDatabaseNames
+      })
+
+#------------------------------------------------------------------------------------------------------------------------
+#' Get ENSEMBL-derived genomic information on what they judget to be the primary transcript of this gene
+#'
+#' @rdname getPrimaryTranscriptInfo
+#' @aliases getPrimarytTranscriptInfo
+#'
+#' @param obj An object of class TrenaProject
+#' @param targetGene default NA, in which case the previously assigned targetGene is assumed
+#'
+#' @seealso setTargetGene
+
+#' @export
+setMethod('getPrimaryTranscriptInfo',  'TrenaProject',
+
+   function(obj, targetGene=NA){
+
+      if(!is.na(targetGene)){
+         return(subset(getGeneInfoTable(obj), geneSymbol==targetGene))
+         }
+
+      targetGene <- getTargetGene(obj)
+      if(is.null(targetGene)){
+         message("no targetGene set for this project, none supplied as argument to this function")
+         return(data.frame())
+         }
+
+      return(subset(getGeneInfoTable(obj), geneSymbol==targetGene))
       })
 
 #------------------------------------------------------------------------------------------------------------------------
