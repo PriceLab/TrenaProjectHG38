@@ -33,6 +33,7 @@
 setGeneric('getSupportedGenes',         signature='obj', function(obj) standardGeneric('getSupportedGenes'))
 setGeneric('setTargetGene',             signature='obj', function(obj, targetGene, curatedGenesOnly=FALSE)
               standardGeneric('setTargetGene'))
+setGeneric('getGenome',                 signature='obj', function(obj) standardGeneric('getGenome'))
 setGeneric('getTargetGene',             signature='obj', function(obj) standardGeneric('getTargetGene'))
 setGeneric('getGeneInfoTable',          signature='obj', function(obj) standardGeneric('getGeneInfoTable'))
 setGeneric('getFootprintDatabaseHost',  signature='obj', function(obj) standardGeneric ('getFootprintDatabaseHost'))
@@ -195,6 +196,22 @@ setMethod('getTargetGene', 'TrenaProject',
 
    function(obj) {
       obj@state$targetGene
+      })
+
+#------------------------------------------------------------------------------------------------------------------------
+#' get the standard short name (e.g., "hg38", "mm10") of the project under study
+#'
+#' @rdname getGenome
+#' @aliases getGenome
+#'
+#' @param obj An object of class TrenaProject
+#'
+#' @export
+
+setMethod('getGenome', 'TrenaProject',
+
+   function(obj) {
+      obj@genomeName
       })
 
 #------------------------------------------------------------------------------------------------------------------------
@@ -488,15 +505,14 @@ setMethod('getCovariatesTable', 'TrenaProject',
 
 setMethod('getGeneRegion',  'TrenaProject',
           function(obj, flankingPercent=0){
-             tbl.transcripts <- getTranscriptsTable(obj)
-             moleculetype <- NULL
-             tbl.gene <- subset(tbl.transcripts, moleculetype=="gene")[1,]
-             chrom <- tbl.gene$chr
-             start <- tbl.gene$start
-             end   <- tbl.gene$end
+             tbl.transcripts <- getTranscriptsTable(obj)[1,]  # currently always nrow of 1
+             chrom <- tbl.transcripts$chr
+             start <- tbl.transcripts$start
+             end   <- tbl.transcripts$end
              span <- 1 + end - start
              flank <- round(span * (flankingPercent/100))
-             sprintf("%s:%d-%d", chrom, start - flank, end + flank)
+             chromLocString <- sprintf("%s:%d-%d", chrom, start - flank, end + flank)
+             list(chrom=chrom, start=start, end=end, chromLocString=chromLocString)
              })
 
 #------------------------------------------------------------------------------------------------------------------------
@@ -515,12 +531,18 @@ setMethod('getGeneRegion',  'TrenaProject',
 setMethod('getGeneEnhancersRegion',  'TrenaProject',
           function(obj, flankingPercent=0){
              tbl.enhancers <- getEnhancers(obj)
+             if(nrow(tbl.enhancers) == 0){  # fake it
+                message(sprintf("no enhancers for this TrenaProject"))
+                return(getGeneRegion(obj, flankingPercent=100))
+                }
+
              chrom <- tbl.enhancers$chrom[1]
              start <- min(tbl.enhancers$start)
              end <- max(tbl.enhancers$end)
              span <- 1 + end - start
              flank <- round(span * (flankingPercent/100))
-             sprintf("%s:%d-%d", chrom, start - flank, end + flank)
+             chromLocString <- sprintf("%s:%d-%d", chrom, start - flank, end + flank)
+             list(chrom=chrom, start=start, end=end, chromLocString=chromLocString)
              })
 
 #------------------------------------------------------------------------------------------------------------------------
