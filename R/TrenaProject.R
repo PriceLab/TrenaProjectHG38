@@ -86,14 +86,21 @@ TrenaProject <- function(supportedGenes,
                          quiet)
 {
 
-   stopifnot(genomeName %in% c("hg38"))
+   stopifnot(genomeName %in% c("hg38", "mm10"))
    state <- new.env(parent=emptyenv())
       # gene-specific information, freshly assigned with every call to setTargetGene
    state$targetGene <- NULL
    state$tbl.transcripts <- NULL
    #stopifnot(file.exists(geneInfoTable.path))
       # tbl.geneInfo is temporarily stolen from TrenaProjectIGAP.
-   tbl.name <-load(system.file(package="TrenaProject", "extdata", "geneInfoTable.RData"))
+
+   if(genomeName == "hg38")
+      geneInfoTable.filepath <- system.file(package="TrenaProject", "extdata", "geneInfoTable_hg38.RData")
+
+   if(genomeName == "mm10")
+      geneInfoTable.filepath <- system.file(package="TrenaProject", "extdata", "geneInfoTable_mm10.RData")
+
+   tbl.name <-load(geneInfoTable.filepath)
    stopifnot(tbl.name == "tbl.geneInfo")
 
    .TrenaProject(supportedGenes=supportedGenes,
@@ -112,6 +119,9 @@ TrenaProject <- function(supportedGenes,
 #------------------------------------------------------------------------------------------------------------------------
 .getCodingTranscripts <- function(geneSymbol, genomeName)
 {
+
+   browser()
+   xyz <- "TrenaProject::.getCodingTranscripts"
    driver <- RPostgreSQL::PostgreSQL()
    genome.db <- DBI::dbConnect(driver, user= "trena", password="trena", dbname="hg38", host="khaleesi")
    expected.tables <- c("gtf")
@@ -159,12 +169,14 @@ setMethod('setTargetGene', 'TrenaProject',
          if(!all(is.na(getSupportedGenes(obj))))
             stopifnot(targetGene %in% getSupportedGenes(obj))
          }
-      tbl.transcripts <- .getCodingTranscripts(targetGene, obj@genomeName)
+      #tbl.transcripts <- .getCodingTranscripts(targetGene, obj@genomeName)
       obj@state$targetGene <- targetGene
-      obj@state$tbl.transcripts <- tbl.transcripts
-      roi <- getGeneEnhancersRegion(obj)
-      #message(sprintf("new roi for %s: %s", targetGene, roi))
-      chromLoc <- trena::parseChromLocString(roi)
+      #obj@state$tbl.transcripts <- tbl.transcripts
+      #if(obj@genome == "hg38"){
+      #   roi <- getGeneEnhancersRegion(obj)
+         #message(sprintf("new roi for %s: %s", targetGene, roi))
+      #   chromLoc <- trena::parseChromLocString(roi)
+      #   }
       })
 
 #------------------------------------------------------------------------------------------------------------------------
