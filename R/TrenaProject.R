@@ -117,24 +117,24 @@ TrenaProject <- function(supportedGenes,
 
 } # ctor
 #------------------------------------------------------------------------------------------------------------------------
-.getCodingTranscripts <- function(geneSymbol, genomeName)
-{
-
-   browser()
-   xyz <- "TrenaProject::.getCodingTranscripts"
-   driver <- RPostgreSQL::PostgreSQL()
-   genome.db <- DBI::dbConnect(driver, user= "trena", password="trena", dbname="hg38", host="khaleesi")
-   expected.tables <- c("gtf")
-   stopifnot(all(expected.tables %in% DBI::dbListTables(genome.db)))
-   query.0 <- sprintf("select * from gtf where gene_name='%s'", geneSymbol)
-   query.1 <- "and gene_biotype='protein_coding' and moleculetype in ('gene', 'transcript')"
-   query <- paste(query.0, query.1)
-   tbl.transcripts <- DBI::dbGetQuery(genome.db, query)
-   dbDisconnect(genome.db)
-   #stopifnot(nrow(tbl.transcripts) > 0)
-   return(tbl.transcripts)
-
-} # .getCodingTranscripts
+# .getCodingTranscripts <- function(geneSymbol, genomeName)
+# {
+#    browser()
+#    index <- grep(geneSymbol,
+#    xyz <- "TrenaProject::.getCodingTranscripts"
+#    driver <- RPostgreSQL::PostgreSQL()
+#    genome.db <- DBI::dbConnect(driver, user= "trena", password="trena", dbname="hg38", host="khaleesi")
+#    expected.tables <- c("gtf")
+#    stopifnot(all(expected.tables %in% DBI::dbListTables(genome.db)))
+#    query.0 <- sprintf("select * from gtf where gene_name='%s'", geneSymbol)
+#    query.1 <- "and gene_biotype='protein_coding' and moleculetype in ('gene', 'transcript')"
+#    query <- paste(query.0, query.1)
+#    tbl.transcripts <- DBI::dbGetQuery(genome.db, query)
+#    dbDisconnect(genome.db)
+#    #stopifnot(nrow(tbl.transcripts) > 0)
+#    return(tbl.transcripts)
+#
+# } # .getCodingTranscripts
 #------------------------------------------------------------------------------------------------------------------------
 #' get the list of genes supported in this project
 #'
@@ -169,8 +169,10 @@ setMethod('setTargetGene', 'TrenaProject',
          if(!all(is.na(getSupportedGenes(obj))))
             stopifnot(targetGene %in% getSupportedGenes(obj))
          }
-      #tbl.transcripts <- .getCodingTranscripts(targetGene, obj@genomeName)
       obj@state$targetGene <- targetGene
+      tbl.tmp <- subset(obj@geneInfoTable, geneSymbol == targetGene)
+      obj@state$tbl.transcripts  <- tbl.tmp
+
       #obj@state$tbl.transcripts <- tbl.transcripts
       #if(obj@genome == "hg38"){
       #   roi <- getGeneEnhancersRegion(obj)
@@ -403,6 +405,9 @@ setMethod('getEnhancers',  'TrenaProject',
 setMethod('getEncodeDHS',   'TrenaProject',
 
     function(obj){
+       if(obj@genomeName == "mm10")
+          return(data.frame())
+
        hdf <- HumanDHSFilter("hg38", "wgEncodeRegDnaseClustered", pwmMatchPercentageThreshold=0,
                              geneInfoDatabase.uri="bogus", regions=data.frame(), pfms=list())
        tbl.enhancers <- getEnhancers(obj)
@@ -431,6 +436,9 @@ setMethod('getEncodeDHS',   'TrenaProject',
 setMethod('getChipSeq',  'TrenaProject',
 
     function(obj, chrom, start, end, tfs=NA){
+       if(obj@genomeName == "mm10")
+          return(data.frame())
+
        db <- dbConnect(PostgreSQL(), user= "trena", password="trena", dbname="hg38", host="khaleesi")
        query <- sprintf("select * from chipseq where chrom='%s' and start >= %d and endpos <= %d", chrom, start, end)
        tbl.chipSeq <- dbGetQuery(db, query)

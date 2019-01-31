@@ -7,7 +7,7 @@ library(org.Mm.eg.db)
 #ENSG00000227232  chr1 14404 29570 29570     -1     WASH7P 653635 C_missing tslNA ENST00000488147 unprocessed_pseudogene
 
 
-ens.genes <- x <- select(org.Mm.eg.db, keys=keys(org.Mm.egENSEMBL), keytype="ENTREZID", columns="ENSEMBL")$ENSEMBL
+ens.genes <- select(org.Mm.eg.db, keys=keys(org.Mm.egENSEMBL), keytype="ENTREZID", columns="ENSEMBL")$ENSEMBL
 length(ens.genes) # 68912
 
 deleters <- which(is.na(ens.genes))
@@ -21,7 +21,7 @@ ens.genes <- unique(ens.genes)
 ensembl.mm10 <- useMart("ensembl", dataset="mmusculus_gene_ensembl")
 
 coi <- c("ensembl_gene_id", "entrezgene", "chromosome_name", "transcription_start_site",
-         "strand", "hgnc_symbol", "transcript_biotype", "gene_biotype", "ensembl_transcript_id",
+         "strand", "mgi_symbol", "transcript_biotype", "gene_biotype", "ensembl_transcript_id",
          "transcript_appris", "transcript_tsl", "transcript_gencode_basic")
 
 key <- "ensembl_gene_id"
@@ -31,6 +31,7 @@ tbl.geneInfo <- getBM(attributes=coi, filters=key,
                       values=ens.genes,
                       mart=ensembl.mm10)
 dim(tbl.geneInfo)
+save(tbl.geneInfo, file="mm10.biomart.table.raw.RData")
 
 appris <- tbl.geneInfo$transcript_appris
 appris <- sub("alternative", "B_alternative", appris)
@@ -53,9 +54,9 @@ dups <- which(duplicated(tbl$ensembl_gene_id))
 length(dups)
 tbl <- tbl[-dups,]
 dim(tbl)
-symbols.missing <- which(nchar(tbl$hgnc_symbol) == 0)
+symbols.missing <- which(nchar(tbl$mgi_symbol) == 0)
 length(symbols.missing)  # 1507
-tbl$hgnc_symbol[symbols.missing] <- tbl$ensembl_gene_id[symbols.missing]
+tbl$mgi_symbol[symbols.missing] <- tbl$ensembl_gene_id[symbols.missing]
 
 #  [1] "ensembl_gene_id"
 #  [2] "entrezgene"
@@ -82,12 +83,12 @@ tbl.geneInfo <- tbl.1
 
    # keep the work done so far, for possible restart.  final file is written below
 
-save(tbl.geneInfo, file="../../extdata/geneInfoTable_mm10.RData")
+save(tbl.geneInfo, file="mm10.biomart.table.cooked.RData")
 
 annotated.genes <- tbl.geneInfo$ensg
-coi.2 <- c("ensembl_gene_id", "transcript_start", "transcript_end") # "genomic_coding_start", "genomic_coding_end", "5_utr_start", "cds_start")
+coi.2 <- c("ensembl_gene_id", "transcript_start", "transcript_end")
 
-ensg.bug <- "ENSG00000067601"   # no start/end
+# ensg.bug <- "ENSG00000067601"   # no start/end
 
 tbl.geneBounds <- getBM(attributes=coi.2, filters=key,
                         values=annotated.genes,
@@ -127,50 +128,6 @@ preferred.column.order <- c("ensg",
                             )
 tbl.geneInfo <- tbl.wide[, preferred.column.order]
 dim(tbl.geneInfo)
+"Abca1" %in% tbl.geneInfo$geneSymbol
 
 save(tbl.geneInfo, file="../../extdata/geneInfoTable_mm10.RData")
-
-
-# does this ordering work for MEF2C
-# tbl.mef2c <- subset(tbl.geneInfo, hgnc_symbol=="MEF2C")
-# x <- with(tbl.mef2c, order(appris, tsl, decreasing=FALSE))
-# tbl.mef2c <- tbl.mef2c[x,]
-# tbl.mef2c$transcription_start_site[1]  # [1] 88904257
-#
-#   # INPP5D
-# tbl.inpp5d <- subset(tbl.geneInfo, hgnc_symbol=="INPP5D")
-# x <- with(tbl.inpp5d, order(appris, tsl, decreasing=FALSE))
-# tbl.inpp5d <- tbl.inpp5d[x,]
-# tbl.inpp5d$transcription_start_site[1]  # [1] 88904257
-#
-#
-#
-# tbl.geneInfo$chromosome_name <- sprintf("chr%s", tbl.geneInfo$chromosome_name)
-# colnames(tbl.geneInfo)[4] <- "tss"
-#
-# failures <- which(nchar(tbl.geneInfo$hgnc_symbol) == 0)
-# length(failures)
-# tbl.geneInfo$hgnc_symbol[failures] <- tbl.geneInfo$ensembl_gene_id[failures]
-#
-#
-# dim(mtx)
-# dim(tbl.geneInfo)
-# all(rownames(mtx) %in% tbl.geneInfo$ensembl_gene_id)
-# length(setdiff(rownames(mtx), unique(tbl.geneInfo$ensembl_gene_id)))  # [1] 61
-#
-# ensembl.genes.without.geneSymbol <- unique(setdiff(rownames(mtx), tbl.geneInfo$ensembl_gene_id))
-# printf("mtx ensembl genes without geneSymbol: %d", length(ensembl.genes.without.geneSymbol))
-#
-# print(load(system.file(package="TrenaProject", "extdata", "epigenome", "geneHancer.v4.7.allGenes.RData"))) # 61
-# dim(tbl.enhancers)
-# geneSymbols.without.enhancers <- setdiff(tbl.geneInfo$hgnc_symbol, unique(tbl.enhancers$geneSymbol))
-# printf("mtx ensembl genes without geneSymbol in tbl.enhancers: %d", length(geneSymbols.without.enhancers))  # 141
-# ensembl.genes.without.enhancers <- sort(unique(c(ensembl.genes.without.geneSymbol,
-#                                                  subset(tbl.geneInfo, hgnc_symbol %in% geneSymbols.without.enhancers)$ensembl_gene_id)))
-# printf("mtx ensembl genes without enhancers (via geneSymbol): %d", length(ensembl.genes.without.enhancers)) # 1708
-#
-# goi.syms <- c("MEF2C", "INPP5D")
-# goi <- subset(tbl.geneInfo, hgnc_symbol %in% goi.syms)$ensembl_gene_id
-#
-# configurationFileRead <- TRUE
-#
