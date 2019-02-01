@@ -159,7 +159,7 @@ setMethod('getSupportedGenes', 'TrenaProject',
 #' @aliases setTargetGene
 #'
 #' @param obj An object of class TrenaProject
-#' @param targetGene a character string, the name of the gene
+#' @param targetGene a characteor string, the name of the gene
 #'
 #' @export
 
@@ -171,15 +171,14 @@ setMethod('setTargetGene', 'TrenaProject',
             stopifnot(targetGene %in% getSupportedGenes(obj))
          }
       obj@state$targetGene <- targetGene
-      tbl.tmp <- subset(obj@geneInfoTable, geneSymbol == targetGene)
+      xyz <- "about to set tbl.transcripts"
+      targetGene.regex <- sprintf("^%s$", targetGene)
+      index <- grep(toupper(targetGene.regex), toupper(obj@geneInfoTable$geneSymbol))
+      if(length(index) == 0)
+         return(FALSE)
+      tbl.tmp <- obj@geneInfoTable[index,]
       obj@state$tbl.transcripts  <- tbl.tmp
-
-      #obj@state$tbl.transcripts <- tbl.transcripts
-      #if(obj@genome == "hg38"){
-      #   roi <- getGeneEnhancersRegion(obj)
-         #message(sprintf("new roi for %s: %s", targetGene, roi))
-      #   chromLoc <- trena::parseChromLocString(roi)
-      #   }
+      return(TRUE)
       })
 
 #------------------------------------------------------------------------------------------------------------------------
@@ -579,8 +578,11 @@ setMethod('getGeneInfoTable',  'TrenaProject',
 setMethod('recognizedGene',  'TrenaProject',
 
    function(obj, geneName){
-      tbl.geneInfo <-getGeneInfoTable(obj)
-      return(geneName %in% tbl.geneInfo$geneSymbol)
+      geneName.regex <- sprintf("^%s$", geneName)
+      index <- grep(toupper(geneName.regex), toupper(obj@geneInfoTable$geneSymbol))
+      return(length(index) > 0)
+      #tbl.geneInfo <-getGeneInfoTable(obj)
+      #return(geneName %in% tbl.geneInfo$geneSymbol)
       })
 
 #------------------------------------------------------------------------------------------------------------------------
