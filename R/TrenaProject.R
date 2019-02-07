@@ -404,8 +404,10 @@ setMethod('getEnhancers',  'TrenaProject',
         full.path <- system.file(package="TrenaProject", "extdata", "genomeAnnotation", "geneHancer.v4.7.allGenes.RData")
         stopifnot(file.exists(full.path))
         load(full.path)
-        geneSymbol <- NULL
-        subset(tbl.enhancers, geneSymbol == targetGene)
+        #geneSymbol <- NULL
+        tbl.out <- subset(tbl.enhancers, toupper(geneSymbol) == toupper(targetGene))
+        printf("found %d enhancers for %s", nrow(tbl.out), targetGene)
+        tbl.out
         })
 
 #------------------------------------------------------------------------------------------------------------------------
@@ -427,6 +429,7 @@ setMethod('getEncodeDHS',   'TrenaProject',
        hdf <- HumanDHSFilter("hg38", "wgEncodeRegDnaseClustered", pwmMatchPercentageThreshold=0,
                              geneInfoDatabase.uri="bogus", regions=data.frame(), pfms=list())
        tbl.enhancers <- getEnhancers(obj)
+       #browser()
        chrom <- tbl.enhancers$chrom[1]
        loc.min <- min(tbl.enhancers$start)
        loc.max <- max(tbl.enhancers$end)

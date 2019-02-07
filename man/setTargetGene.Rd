@@ -12,7 +12,7 @@
 \arguments{
 \item{obj}{An object of class TrenaProject}
 
-\item{targetGene}{a character string, the name of the gene}
+\item{targetGene}{a characteor string, the name of the gene}
 }
 \description{
 Set a single gene for analysis
