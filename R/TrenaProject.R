@@ -20,6 +20,7 @@
                            genomeName="character",
                            footprintDatabaseHost="character",
                            footprintDatabaseNames="character",
+                           footprintDatabasePort="numeric",
                            expressionDirectory="character",
                            variantsDirectory="character",
                            covariatesFile="character",
@@ -37,6 +38,7 @@ setGeneric('getGenome',                 signature='obj', function(obj) standardG
 setGeneric('getTargetGene',             signature='obj', function(obj) standardGeneric('getTargetGene'))
 setGeneric('getGeneInfoTable',          signature='obj', function(obj) standardGeneric('getGeneInfoTable'))
 setGeneric('getFootprintDatabaseHost',  signature='obj', function(obj) standardGeneric ('getFootprintDatabaseHost'))
+setGeneric('getFootprintDatabasePort',  signature='obj', function(obj) standardGeneric ('getFootprintDatabasePort'))
 setGeneric('getFootprintDatabaseNames', signature='obj', function(obj) standardGeneric ('getFootprintDatabaseNames'))
 setGeneric('getTranscriptsTable',       signature='obj', function(obj) standardGeneric ('getTranscriptsTable'))
 setGeneric('getPrimaryTranscriptInfo',  signature='obj', function(obj, targetGene=NA) standardGeneric ('getPrimaryTranscriptInfo'))
@@ -81,6 +83,7 @@ TrenaProject <- function(supportedGenes,
                          geneInfoTable.path,
                          footprintDatabaseHost,
                          footprintDatabaseNames,
+                         footprintDatabasePort=5432,
                          expressionDirectory,
                          variantsDirectory,
                          covariatesFile,
@@ -109,6 +112,7 @@ TrenaProject <- function(supportedGenes,
                  genomeName=genomeName,
                  footprintDatabaseHost=footprintDatabaseHost,
                  footprintDatabaseNames=footprintDatabaseNames,
+                 footprintDatabasePort=footprintDatabasePort,
                  expressionDirectory=expressionDirectory,
                  variantsDirectory=variantsDirectory,
                  covariatesFile=covariatesFile,
@@ -117,25 +121,6 @@ TrenaProject <- function(supportedGenes,
 
 
 } # ctor
-#------------------------------------------------------------------------------------------------------------------------
-# .getCodingTranscripts <- function(geneSymbol, genomeName)
-# {
-#    browser()
-#    index <- grep(geneSymbol,
-#    xyz <- "TrenaProject::.getCodingTranscripts"
-#    driver <- RPostgreSQL::PostgreSQL()
-#    genome.db <- DBI::dbConnect(driver, user= "trena", password="trena", dbname="hg38", host="khaleesi")
-#    expected.tables <- c("gtf")
-#    stopifnot(all(expected.tables %in% DBI::dbListTables(genome.db)))
-#    query.0 <- sprintf("select * from gtf where gene_name='%s'", geneSymbol)
-#    query.1 <- "and gene_biotype='protein_coding' and moleculetype in ('gene', 'transcript')"
-#    query <- paste(query.0, query.1)
-#    tbl.transcripts <- DBI::dbGetQuery(genome.db, query)
-#    dbDisconnect(genome.db)
-#    #stopifnot(nrow(tbl.transcripts) > 0)
-#    return(tbl.transcripts)
-#
-# } # .getCodingTranscripts
 #------------------------------------------------------------------------------------------------------------------------
 #' get the list of genes supported in this project
 #'
@@ -227,6 +212,22 @@ setMethod('getFootprintDatabaseHost', 'TrenaProject',
 
    function(obj) {
       obj@footprintDatabaseHost
+      })
+
+#------------------------------------------------------------------------------------------------------------------------
+#' get the port  on which the footprints Postgres database is running
+#'
+#' @rdname getFootprintDatabasePort
+#' @aliases getFootprintDatabasePort
+#'
+#' @param obj An object of class TrenaProject
+#'
+#' @export
+
+setMethod('getFootprintDatabasePort', 'TrenaProject',
+
+   function(obj) {
+      obj@footprintDatabasePort
       })
 
 #------------------------------------------------------------------------------------------------------------------------

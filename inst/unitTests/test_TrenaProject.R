@@ -34,6 +34,7 @@ if(!exists("trenaProj")){
 runTests <- function()
 {
    test_ctor()
+   test_ctor_withFootprintDatabasePortSpecified()
    test_getEnhancers()
    test_recognizedGene()
    test_getPrimaryTranscriptInfo()
@@ -56,8 +57,7 @@ test_ctor <- function()
    printf("--- getting transcript info for %s", genes[1])
 
    tbl.transcripts <- getTranscriptsTable(trenaProj)
-   checkTrue(nrow(tbl.transcripts) >= 3)
-
+   checkTrue(nrow(tbl.transcripts) == 1)
 
    printf("--- testing get/setTargetGene")
    #checkTrue(is.null(getTargetGene(trenaProj)))
@@ -66,7 +66,7 @@ test_ctor <- function()
 
    printf("--- getting transcript info for %s", "PIGF")
    tbl.transcripts <- getTranscriptsTable(trenaProj)
-   checkTrue(nrow(tbl.transcripts) >= 3)
+   checkTrue(nrow(tbl.transcripts) == 1)
 
      # return to TREM2, whose coordinates we check below
    setTargetGene(trenaProj, genes[1])
@@ -113,20 +113,42 @@ test_ctor <- function()
 
    checkEquals(colnames(tbl.chipseq), c("chrom", "start", "endpos", "tf", "name", "strand", "peakStart", "peakEnd"))
 
-   checkEquals(getGeneRegion(trenaProj),                     "chr6:41158506-41163186")
-   checkEquals(getGeneRegion(trenaProj, flankingPercent=20), "chr6:41157570-41164122")
+   checkEquals(getGeneRegion(trenaProj)$chromLocString,      "chr6:41158506-41163186")
+   checkEquals(getGeneRegion(trenaProj, flankingPercent=20)$chromLocString, "chr6:41157570-41164122")
 
-   checkEquals(getGeneEnhancersRegion(trenaProj),                     "chr6:41154324-41210533")
-   checkEquals(getGeneEnhancersRegion(trenaProj, flankingPercent=10), "chr6:41148703-41216154")
+   checkEquals(getGeneEnhancersRegion(trenaProj)$chromLocString,                     "chr6:41154324-41210533")
+   checkEquals(getGeneEnhancersRegion(trenaProj, flankingPercent=10)$chromLocString, "chr6:41148703-41216154")
 
    vf <- getVariantDatasetNames(trenaProj)
 
    checkTrue(nrow(getGeneInfoTable(trenaProj)) > 15000)
    checkTrue(ncol(getGeneInfoTable(trenaProj)) >= 10)
 
+   checkEquals(getFootprintDatabasePort(trenaProj), 5432)
+
+
    checkTrue(!recognizedGene(trenaProj, "bogusGene"))      # only genes in the tbl.geneInfo are recognized
 
 } # test_ctor
+#------------------------------------------------------------------------------------------------------------------------
+test_ctor_withFootprintDatabasePortSpecified <- function()
+{
+   printf("--- test_ctor_withFootprintDatabasePortSpecified")
+
+   trenaProj <- TrenaProject(supportedGenes=genes,
+                             genomeName=genomeName,
+                             geneInfoTable.path=geneInfoTable.path,
+                             footprintDatabaseHost=footprintDatabaseHost,
+                             footprintDatabasePort=5433,
+                             footprintDatabaseNames=footprintDatabaseNames,
+                             expressionDirectory=expressionDirectory,
+                             variantsDirectory=variantsDirectory,
+                             covariatesFile=covariatesFile,
+                             quiet=TRUE)
+
+   checkEquals(getFootprintDatabasePort(trenaProj), 5433)
+
+} # test_ctor_withFootprintDatabsePortSpecified
 #------------------------------------------------------------------------------------------------------------------------
 test_getEnhancers <- function()
 {
@@ -150,11 +172,11 @@ test_getEnhancers <- function()
 test_recognizedGene <- function()
 {
    printf("--- test_recognizedGene")
-   library(TrenaProjectIGAP)
-   igap <- TrenaProjectIGAP()
+   library(TrenaProjectAD)
+   igap <- TrenaProjectAD()
 
    checkTrue(recognizedGene(igap, "TREM2"))
-   checkTrue(!recognizedGene(igap, "trem2"))
+   checkTrue(recognizedGene(igap, "trem2"))
    checkTrue(!recognizedGene(igap, "BOGUS"))
 
 } # test_recognizedGene

@@ -8,8 +8,9 @@
 \title{TrenaProject}
 \usage{
 TrenaProject(supportedGenes, genomeName, geneInfoTable.path,
-  footprintDatabaseHost, footprintDatabaseNames, expressionDirectory,
-  variantsDirectory, covariatesFile, quiet)
+  footprintDatabaseHost, footprintDatabaseNames,
+  footprintDatabasePort = 5432, expressionDirectory, variantsDirectory,
+  covariatesFile, quiet)
 }
 \arguments{
 \item{supportedGenes}{a vector of character strings}
