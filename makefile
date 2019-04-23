@@ -6,16 +6,16 @@ vig:
 	R -e "devtools::build_vignettes()"
 
 build:
-	(cd ..; R CMD build --no-build-vignettes TrenaProject)
+	(cd ..; R CMD build --no-build-vignettes TrenaProjectHG38)
 
 install:
-	(cd ..; R CMD INSTALL --no-test-load TrenaProject)
+	(cd ..; R CMD INSTALL --no-test-load TrenaProjectHG38)
 
 check:
-	(cd ..; R CMD check `ls -t TrenaProject_* | head -1`)
+	(cd ..; R CMD check `ls -t TrenaProjectHG38_* | head -1`)
 
 biocCheck:
-	(cd ..; R CMD BiocCheck `ls -t TrenaProject_* | head -1`)
+	(cd ..; R CMD BiocCheck `ls -t TrenaProjectHG38_* | head -1`)
 
 
 test:

@@ -160,7 +160,7 @@ save(tbl.geneInfo, file="../../extdata/geneInfoTable.RData")
 # ensembl.genes.without.geneSymbol <- unique(setdiff(rownames(mtx), tbl.geneInfo$ensembl_gene_id))
 # printf("mtx ensembl genes without geneSymbol: %d", length(ensembl.genes.without.geneSymbol))
 #
-# print(load(system.file(package="TrenaProject", "extdata", "epigenome", "geneHancer.v4.7.allGenes.RData"))) # 61
+# print(load(system.file(package="TrenaProjectHG38", "extdata", "epigenome", "geneHancer.v4.7.allGenes.RData"))) # 61
 # dim(tbl.enhancers)
 # geneSymbols.without.enhancers <- setdiff(tbl.geneInfo$hgnc_symbol, unique(tbl.enhancers$geneSymbol))
 # printf("mtx ensembl genes without geneSymbol in tbl.enhancers: %d", length(geneSymbols.without.enhancers))  # 141

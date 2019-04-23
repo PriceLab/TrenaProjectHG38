@@ -1,33 +1,32 @@
-# test_TrenaProject
+# test_TrenaProjectHG38
 #------------------------------------------------------------------------------------------------------------------------
-library(TrenaProject)
+library(TrenaProjectHG38)
 library(RUnit)
 #------------------------------------------------------------------------------------------------------------------------
 if(!exists("trenaProj")){
 
    genes <- c("TREM2", "INPP5D")
    genomeName <- "hg38"
-   geneInfoTable.path <- system.file(package="TrenaProject", "extdata", "geneInfoTable.RData")
+   geneInfoTable.path <- system.file(package="TrenaProjectHG38", "extdata", "geneInfoTable.RData")
 
    footprintDatabaseHost <- "khaleesi.systemsbiology.net"
    footprintDatabaseNames <- c("brain_hint_20, brain_wellington_16")
 
-   expressionDirectory <- system.file(package="TrenaProject", "extdata", "expression")
-   variantsDirectory <- system.file(package="TrenaProject", "extdata", "variants")
-   covariatesFile <- system.file(package="TrenaProject", "extdata", "covariates", "dummyCovariates.RData")
+   expressionDirectory <- system.file(package="TrenaProjectHG38", "extdata", "expression")
+   variantsDirectory <- system.file(package="TrenaProjectHG38", "extdata", "variants")
+   covariatesFile <- system.file(package="TrenaProjectHG38", "extdata", "covariates", "dummyCovariates.RData")
    checkTrue(file.exists(expressionDirectory))
    checkTrue(file.exists(variantsDirectory))
    checkTrue(file.exists(covariatesFile))
 
-   trenaProj <- TrenaProject(supportedGenes=genes,
-                             genomeName=genomeName,
-                             geneInfoTable.path=geneInfoTable.path,
-                             footprintDatabaseHost=footprintDatabaseHost,
-                             footprintDatabaseNames=footprintDatabaseNames,
-                             expressionDirectory=expressionDirectory,
-                             variantsDirectory=variantsDirectory,
-                             covariatesFile=covariatesFile,
-                             quiet=TRUE)
+   trenaProj <- TrenaProjectHG38(supportedGenes=genes,
+                                 geneInfoTable.path=geneInfoTable.path,
+                                 footprintDatabaseHost=footprintDatabaseHost,
+                                 footprintDatabaseNames=footprintDatabaseNames,
+                                 expressionDirectory=expressionDirectory,
+                                 variantsDirectory=variantsDirectory,
+                                 covariatesFile=covariatesFile,
+                                 quiet=TRUE)
    } # creating trenaProj for use in multiple functions below
 
 #------------------------------------------------------------------------------------------------------------------------
@@ -36,7 +35,6 @@ runTests <- function()
    test_ctor()
    test_ctor_withFootprintDatabasePortSpecified()
    test_getEnhancers()
-   test_recognizedGene()
    test_getPrimaryTranscriptInfo()
 
 } # runTests
@@ -135,8 +133,7 @@ test_ctor_withFootprintDatabasePortSpecified <- function()
 {
    printf("--- test_ctor_withFootprintDatabasePortSpecified")
 
-   trenaProj <- TrenaProject(supportedGenes=genes,
-                             genomeName=genomeName,
+   trenaProj <- TrenaProjectHG38(supportedGenes=genes,
                              geneInfoTable.path=geneInfoTable.path,
                              footprintDatabaseHost=footprintDatabaseHost,
                              footprintDatabasePort=5433,
@@ -168,18 +165,6 @@ test_getEnhancers <- function()
    checkEquals(nrow(tbl.bogus), 0)
 
 } # test_getEnhancers
-#------------------------------------------------------------------------------------------------------------------------
-test_recognizedGene <- function()
-{
-   printf("--- test_recognizedGene")
-   library(TrenaProjectAD)
-   igap <- TrenaProjectAD()
-
-   checkTrue(recognizedGene(igap, "TREM2"))
-   checkTrue(recognizedGene(igap, "trem2"))
-   checkTrue(!recognizedGene(igap, "BOGUS"))
-
-} # test_recognizedGene
 #------------------------------------------------------------------------------------------------------------------------
 test_getPrimaryTranscriptInfo <- function()
 {
