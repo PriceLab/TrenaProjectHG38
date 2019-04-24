@@ -19,7 +19,8 @@ if(!exists("trenaProj")){
    checkTrue(file.exists(variantsDirectory))
    checkTrue(file.exists(covariatesFile))
 
-   trenaProj <- TrenaProjectHG38(supportedGenes=genes,
+   trenaProj <- TrenaProjectHG38(projectName="HG38 test",
+                                 supportedGenes=genes,
                                  geneInfoTable.path=geneInfoTable.path,
                                  footprintDatabaseHost=footprintDatabaseHost,
                                  footprintDatabaseNames=footprintDatabaseNames,
@@ -43,19 +44,20 @@ test_ctor <- function()
 {
    printf("--- test_ctor")
 
+   tbl.geneInfo <- getGeneInfoTable(trenaProj)
    checkEquals(getSupportedGenes(trenaProj), genes)
    checkEquals(getFootprintDatabaseHost(trenaProj), footprintDatabaseHost)
    checkEquals(getFootprintDatabaseNames(trenaProj), footprintDatabaseNames)
 
    printf("--- testing get/setTargetGene")
-   #checkTrue(is.null(getTargetGene(trenaProj)))
-   setTargetGene(trenaProj, genes[1])
+   setTargetGene(trenaProj, genes[1], curatedGenesOnly=FALSE)
    checkEquals(getTargetGene(trenaProj), genes[1])
 
    printf("--- getting transcript info for %s", genes[1])
 
    tbl.transcripts <- getTranscriptsTable(trenaProj)
    checkTrue(nrow(tbl.transcripts) == 1)
+   checkEquals(tbl.transcripts$geneSymbol, genes[1])
 
    printf("--- testing get/setTargetGene")
    #checkTrue(is.null(getTargetGene(trenaProj)))
@@ -65,6 +67,7 @@ test_ctor <- function()
    printf("--- getting transcript info for %s", "PIGF")
    tbl.transcripts <- getTranscriptsTable(trenaProj)
    checkTrue(nrow(tbl.transcripts) == 1)
+   checkEquals(tbl.transcripts$geneSymbol, "PIGF")
 
      # return to TREM2, whose coordinates we check below
    setTargetGene(trenaProj, genes[1])
