@@ -1,7 +1,10 @@
 #' @import trena
 #' @import TrenaProject
 #' @importMethodsFrom TrenaProject getEnhancers
-#' @importFrom DBI dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
+#' @importMethodsFrom TrenaProject getEncodeDHS
+#' @importMethodsFrom TrenaProject getChipSeq
+#' @importMethodsFrom TrenaProject getGeneRegion
+#' @importMethodsFrom TrenaProject getGeneEnhancersRegion
 #' @importFrom RPostgreSQL dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
 #' @import RPostgreSQL
 #' @import org.Hs.eg.db
@@ -87,8 +90,6 @@ TrenaProjectHG38 <- function(projectName,
 setMethod('getEnhancers',  'TrenaProjectHG38',
 
      function(obj, targetGene=NA_character_){
-        printf("---- TrenaProjectHG38.R::getEnhancers")
-
         if(is.na(targetGene))
            targetGene <- getTargetGene(obj)
         stopifnot(!is.null(targetGene))
@@ -96,11 +97,119 @@ setMethod('getEnhancers',  'TrenaProjectHG38',
         full.path <- system.file(package="TrenaProjectHG38", "extdata", "genomeAnnotation", "geneHancer.v4.7.allGenes.RData")
         stopifnot(file.exists(full.path))
         load(full.path)
-        #geneSymbol <- NULL
-        tbl.out <- subset(tbl.enhancers, toupper(geneSymbol) == toupper(targetGene))
-        printf("found %d enhancers for %s", nrow(tbl.out), targetGene)
-        tbl.out
+        subset(tbl.enhancers, toupper(geneSymbol) == toupper(targetGene))
         })
 
 #------------------------------------------------------------------------------------------------------------------------
+#' Get all the dnase hypersensitivity regions in the expansive region covered by the enhancer
+#'
+#' @rdname getEncodeDHS
+#' @aliases getEncodeDHS
+#'
+#' @param obj An object of class TrenaProject
+#'
+#' @export
 
+setMethod('getEncodeDHS',   'TrenaProject',
+
+    function(obj){
+
+       hdf <- HumanDHSFilter("hg38", "wgEncodeRegDnaseClustered", pwmMatchPercentageThreshold=0,
+                             geneInfoDatabase.uri="bogus", regions=data.frame(), pfms=list())
+       tbl.enhancers <- getEnhancers(obj)
+       chrom <- tbl.enhancers$chrom[1]
+       loc.min <- min(tbl.enhancers$start)
+       loc.max <- max(tbl.enhancers$end)
+       tbl.dhs <- getRegulatoryRegions(hdf, "wgEncodeRegDnaseClustered", chrom, loc.min, loc.max)
+           # todo: close the MySQL connection used above.
+       return(tbl.dhs)
+       })
+
+#------------------------------------------------------------------------------------------------------------------------
+#' Get all the ReMap 2018 ChIP-seq binding sites in the extended (i.e., enhancers-extended) region of the gene
+#'
+#' @rdname getChipSeq
+#' @aliases getChipSeq
+#'
+#' @param obj An object of class TrenaProject
+#' @param chrom string
+#' @param start numeric
+#' @param end numeric
+#' @param tfs one of more tfs - limit the hits to those for this transcription factor/s
+#'
+#' @export
+
+setMethod('getChipSeq',  'TrenaProject',
+
+    function(obj, chrom, start, end, tfs=NA){
+
+       db <- dbConnect(PostgreSQL(), user= "trena", password="trena", dbname="hg38", host="khaleesi")
+       query <- sprintf("select * from chipseq where chrom='%s' and start >= %d and endpos <= %d", chrom, start, end)
+       tbl.chipSeq <- dbGetQuery(db, query)
+       tf <- NULL  # quiet R CMD CHECK NOTE
+       if(!obj@quiet) message(sprintf("tfs before filtering: %d", length (tbl.chipSeq$tf)))
+       if(!(all(is.na(tfs))))
+         tbl.chipSeq <- subset(tbl.chipSeq, tf %in% tfs)
+       if(!obj@quiet){
+          message(sprintf("incoming tf filter count: %d", length(tfs)))
+          message(sprintf("tfs after filtering: %d", length(unique((tbl.chipSeq$tf)))))
+          }
+       dbDisconnect(db)
+       return(tbl.chipSeq)
+       })
+
+#------------------------------------------------------------------------------------------------------------------------
+#' Get the chromosomal region surrounding the current targetGene, with a flanking percentage added up and downstream
+#'
+#' @rdname getGeneRegion
+#' @aliases getGeneRegion
+#'
+#' @param obj An object of class TrenaProject
+#' @param flankingPercent a numeric percentage of the gene's total span
+#'
+#' @return a chrom.loc (chrom:start-end) string
+#' @export
+
+setMethod('getGeneRegion',  'TrenaProject',
+          function(obj, flankingPercent=0){
+             tbl.transcripts <- getTranscriptsTable(obj)[1,]  # currently always nrow of 1
+             chrom <- tbl.transcripts$chr
+             start <- tbl.transcripts$start
+             end   <- tbl.transcripts$end
+             span <- 1 + end - start
+             flank <- round(span * (flankingPercent/100))
+             chromLocString <- sprintf("%s:%d-%d", chrom, start - flank, end + flank)
+             list(chrom=chrom, start=start, end=end, chromLocString=chromLocString)
+             })
+
+#------------------------------------------------------------------------------------------------------------------------
+#' Get the chromosomal region enclosing the enhancers of the current targetGene, with a flanking percentage added
+#'
+#' @rdname getGeneEnhancersRegion
+#' @aliases getGeneEnhancersRegion
+#'
+#' @param obj An object of class TrenaProject
+#' @param flankingPercent a numeric percentage of the gene's total span
+#'
+#' @return a chrom.loc (chrom:start-end) string
+#'
+#' @export
+
+setMethod('getGeneEnhancersRegion',  'TrenaProject',
+          function(obj, flankingPercent=0){
+             tbl.enhancers <- getEnhancers(obj)
+             if(nrow(tbl.enhancers) == 0){  # fake it
+                message(sprintf("no enhancers for this TrenaProject"))
+                return(getGeneRegion(obj, flankingPercent=100))
+                }
+
+             chrom <- tbl.enhancers$chrom[1]
+             start <- min(tbl.enhancers$start)
+             end <- max(tbl.enhancers$end)
+             span <- 1 + end - start
+             flank <- round(span * (flankingPercent/100))
+             chromLocString <- sprintf("%s:%d-%d", chrom, start - flank, end + flank)
+             list(chrom=chrom, start=start, end=end, chromLocString=chromLocString)
+             })
+
+#------------------------------------------------------------------------------------------------------------------------

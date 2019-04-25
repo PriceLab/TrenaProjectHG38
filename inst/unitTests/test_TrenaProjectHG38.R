@@ -8,6 +8,7 @@ if(!exists("trenaProj")){
    genes <- c("TREM2", "INPP5D")
    genomeName <- "hg38"
    geneInfoTable.path <- system.file(package="TrenaProjectHG38", "extdata", "geneInfoTable.RData")
+   stopifnot(file.exists(geneInfoTable.path))
 
    footprintDatabaseHost <- "khaleesi.systemsbiology.net"
    footprintDatabaseNames <- c("brain_hint_20, brain_wellington_16")
@@ -45,6 +46,11 @@ test_ctor <- function()
    printf("--- test_ctor")
 
    tbl.geneInfo <- getGeneInfoTable(trenaProj)
+   checkTrue(nrow(tbl.geneInfo) > 50000)
+   geneInfo.columns <- c( "ensg", "chrom", "start", "end", "tss", "strand", "geneSymbol",
+                         "entrez", "appris", "tsl", "transcript", "type")
+   checkEquals(colnames(tbl.geneInfo), geneInfo.columns)
+
    checkEquals(getSupportedGenes(trenaProj), genes)
    checkEquals(getFootprintDatabaseHost(trenaProj), footprintDatabaseHost)
    checkEquals(getFootprintDatabaseNames(trenaProj), footprintDatabaseNames)
@@ -57,6 +63,8 @@ test_ctor <- function()
 
    tbl.transcripts <- getTranscriptsTable(trenaProj)
    checkTrue(nrow(tbl.transcripts) == 1)
+   checkEquals(colnames(tbl.transcripts), geneInfo.columns)
+
    checkEquals(tbl.transcripts$geneSymbol, genes[1])
 
    printf("--- testing get/setTargetGene")
@@ -136,15 +144,17 @@ test_ctor_withFootprintDatabasePortSpecified <- function()
 {
    printf("--- test_ctor_withFootprintDatabasePortSpecified")
 
-   trenaProj <- TrenaProjectHG38(supportedGenes=genes,
-                             geneInfoTable.path=geneInfoTable.path,
-                             footprintDatabaseHost=footprintDatabaseHost,
-                             footprintDatabasePort=5433,
-                             footprintDatabaseNames=footprintDatabaseNames,
-                             expressionDirectory=expressionDirectory,
-                             variantsDirectory=variantsDirectory,
-                             covariatesFile=covariatesFile,
-                             quiet=TRUE)
+   trenaProj <- TrenaProjectHG38(projectName="HG38 test",
+                                 supportedGenes=genes,
+                                 geneInfoTable.path=geneInfoTable.path,
+                                 footprintDatabaseHost=footprintDatabaseHost,
+                                 footprintDatabasePort=5433,
+                                 footprintDatabaseNames=footprintDatabaseNames,
+                                 expressionDirectory=expressionDirectory,
+                                 variantsDirectory=variantsDirectory,
+                                 covariatesFile=covariatesFile,
+                                 quiet=TRUE)
+
 
    checkEquals(getFootprintDatabasePort(trenaProj), 5433)
 
@@ -173,10 +183,12 @@ test_getPrimaryTranscriptInfo <- function()
 {
    printf("--- test_getPrimaryTranscriptInfo")
 
-   checkEquals(getPrimaryTranscriptInfo(trenaProj, "CRH")$tss, 66178725)
+   checkEquals(getTranscriptsTable(trenaProj, "CRH")$tss, 66178725)
+   # checkEquals(getPrimaryTranscriptInfo(trenaProj, "CRH")$tss, 66178725)
 
    setTargetGene(trenaProj, "TREM2")
-   checkEquals(getPrimaryTranscriptInfo(trenaProj)$tss, 41163176)
+   checkEquals(getTranscriptsTable(trenaProj)$tss, 41163176)
+   # checkEquals(getPrimaryTranscriptInfo(trenaProj)$tss, 41163176)
 
 } # test_getPrimaryTranscriptInfo
 #------------------------------------------------------------------------------------------------------------------------
