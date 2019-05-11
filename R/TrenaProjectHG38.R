@@ -92,7 +92,7 @@ setMethod('getEnhancers',  'TrenaProjectHG38',
      function(obj, targetGene=NA_character_){
         if(is.na(targetGene))
            targetGene <- getTargetGene(obj)
-        stopifnot(!is.null(targetGene))
+        if(is.null(targetGene)) return(data.frame())
         tbl.enhancers <- data.frame() # suppress R CMD CHECK NOTE
         full.path <- system.file(package="TrenaProjectHG38", "extdata", "genomeAnnotation", "geneHancer.v4.7.allGenes.RData")
         stopifnot(file.exists(full.path))
@@ -117,6 +117,7 @@ setMethod('getEncodeDHS',   'TrenaProject',
        hdf <- HumanDHSFilter("hg38", "wgEncodeRegDnaseClustered", pwmMatchPercentageThreshold=0,
                              geneInfoDatabase.uri="bogus", regions=data.frame(), pfms=list())
        tbl.enhancers <- getEnhancers(obj)
+       if(nrow(tbl.enhancers) == 0) return(data.frame())
        chrom <- tbl.enhancers$chrom[1]
        loc.min <- min(tbl.enhancers$start)
        loc.max <- max(tbl.enhancers$end)
@@ -157,30 +158,6 @@ setMethod('getChipSeq',  'TrenaProject',
        dbDisconnect(db)
        return(tbl.chipSeq)
        })
-
-#------------------------------------------------------------------------------------------------------------------------
-#' Get the chromosomal region surrounding the current targetGene, with a flanking percentage added up and downstream
-#'
-#' @rdname getGeneRegion
-#' @aliases getGeneRegion
-#'
-#' @param obj An object of class TrenaProject
-#' @param flankingPercent a numeric percentage of the gene's total span
-#'
-#' @return a chrom.loc (chrom:start-end) string
-#' @export
-
-setMethod('getGeneRegion',  'TrenaProject',
-          function(obj, flankingPercent=0){
-             tbl.transcripts <- getTranscriptsTable(obj)[1,]  # currently always nrow of 1
-             chrom <- tbl.transcripts$chr
-             start <- tbl.transcripts$start
-             end   <- tbl.transcripts$end
-             span <- 1 + end - start
-             flank <- round(span * (flankingPercent/100))
-             chromLocString <- sprintf("%s:%d-%d", chrom, start - flank, end + flank)
-             list(chrom=chrom, start=start, end=end, chromLocString=chromLocString)
-             })
 
 #------------------------------------------------------------------------------------------------------------------------
 #' Get the chromosomal region enclosing the enhancers of the current targetGene, with a flanking percentage added

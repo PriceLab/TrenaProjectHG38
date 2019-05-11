@@ -3,6 +3,8 @@
 library(TrenaProjectHG38)
 library(RUnit)
 #------------------------------------------------------------------------------------------------------------------------
+# TODO: test getEnhancers and getEncodeDHS with genes which have no GeneHancer regions (pshannon, 10may 2019)
+#------------------------------------------------------------------------------------------------------------------------
 if(!exists("trenaProj")){
 
    genes <- c("TREM2", "INPP5D")
