@@ -16,6 +16,7 @@ if(!exists("trenaProj")){
    footprintDatabaseNames <- c("brain_hint_20, brain_wellington_16")
 
    expressionDirectory <- system.file(package="TrenaProjectHG38", "extdata", "expression")
+   genomicRegionsDirectory <- system.file(package="TrenaProjectHG38", "extdata", "genomicRegions")
    variantsDirectory <- system.file(package="TrenaProjectHG38", "extdata", "variants")
    covariatesFile <- system.file(package="TrenaProjectHG38", "extdata", "covariates", "dummyCovariates.RData")
    checkTrue(file.exists(expressionDirectory))
@@ -28,6 +29,7 @@ if(!exists("trenaProj")){
                                  footprintDatabaseHost=footprintDatabaseHost,
                                  footprintDatabaseNames=footprintDatabaseNames,
                                  expressionDirectory=expressionDirectory,
+                                 genomicRegionsDirectory=genomicRegionsDirectory,
                                  variantsDirectory=variantsDirectory,
                                  covariatesFile=covariatesFile,
                                  quiet=TRUE)
@@ -153,6 +155,7 @@ test_ctor_withFootprintDatabasePortSpecified <- function()
                                  footprintDatabasePort=5433,
                                  footprintDatabaseNames=footprintDatabaseNames,
                                  expressionDirectory=expressionDirectory,
+                                 genomicRegionsDirectory=genomicRegionsDirectory,
                                  variantsDirectory=variantsDirectory,
                                  covariatesFile=covariatesFile,
                                  quiet=TRUE)

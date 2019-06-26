@@ -34,6 +34,7 @@
 #' @param footprintDatabaseHost Character string (e.g., "khaleesi.systemsbiology.net")
 #' @param footprintDatabaseNames Character string (e.g., "hint_brain_20")
 #' @param expressionDirectory A string pointing to a collection of RData expression matrices
+#' @param genomicRegionsDirectory A string pointing to a collection of RData genomic region bed-type files
 #' @param variantsDirectory A string pointing to a collection of RData variant files
 #' @param covariatesFile  the (optional) name of a covariates files
 #' @param quiet A logical indicating whether or not the Trena object should print output
@@ -50,6 +51,7 @@ TrenaProjectHG38 <- function(projectName,
                              footprintDatabaseNames,
                              footprintDatabasePort=5432,
                              expressionDirectory,
+                             genomicRegionsDirectory,
                              variantsDirectory,
                              covariatesFile,
                              quiet)
@@ -68,6 +70,7 @@ TrenaProjectHG38 <- function(projectName,
                                   footprintDatabaseNames=footprintDatabaseNames,
                                   footprintDatabasePort=footprintDatabasePort,
                                   expressionDirectory=expressionDirectory,
+                                  genomicRegionsDirectory=genomicRegionsDirectory,
                                   variantsDirectory=variantsDirectory,
                                   covariatesFile=covariatesFile,
                                   quiet=quiet))

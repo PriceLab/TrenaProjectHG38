@@ -9,8 +9,8 @@
 \usage{
 TrenaProjectHG38(projectName, supportedGenes, geneInfoTable.path,
   footprintDatabaseHost, footprintDatabaseNames,
-  footprintDatabasePort = 5432, expressionDirectory, variantsDirectory,
-  covariatesFile, quiet)
+  footprintDatabasePort = 5432, expressionDirectory,
+  genomicRegionsDirectory, variantsDirectory, covariatesFile, quiet)
 }
 \arguments{
 \item{supportedGenes}{a vector of character strings}
@@ -20,6 +20,8 @@ TrenaProjectHG38(projectName, supportedGenes, geneInfoTable.path,
 \item{footprintDatabaseNames}{Character string (e.g., "hint_brain_20")}
 
 \item{expressionDirectory}{A string pointing to a collection of RData expression matrices}
+
+\item{genomicRegionsDirectory}{A string pointing to a collection of RData genomic region bed-type files}
 
 \item{variantsDirectory}{A string pointing to a collection of RData variant files}
 
