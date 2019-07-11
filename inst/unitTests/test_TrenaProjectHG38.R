@@ -47,7 +47,7 @@ runTests <- function()
 #------------------------------------------------------------------------------------------------------------------------
 test_ctor <- function()
 {
-   printf("--- test_ctor")
+   message(sprintf("--- test_ctor"))
 
    tbl.geneInfo <- getGeneInfoTable(trenaProj)
    checkTrue(nrow(tbl.geneInfo) > 50000)
@@ -59,11 +59,11 @@ test_ctor <- function()
    checkEquals(getFootprintDatabaseHost(trenaProj), footprintDatabaseHost)
    checkEquals(getFootprintDatabaseNames(trenaProj), footprintDatabaseNames)
 
-   printf("--- testing get/setTargetGene")
+   message(sprintf("--- testing get/setTargetGene"))
    setTargetGene(trenaProj, genes[1], curatedGenesOnly=FALSE)
    checkEquals(getTargetGene(trenaProj), genes[1])
 
-   printf("--- getting transcript info for %s", genes[1])
+   message(sprintf("--- getting transcript info for %s", genes[1]))
 
    tbl.transcripts <- getTranscriptsTable(trenaProj)
    checkTrue(nrow(tbl.transcripts) == 1)
@@ -71,12 +71,12 @@ test_ctor <- function()
 
    checkEquals(tbl.transcripts$geneSymbol, genes[1])
 
-   printf("--- testing get/setTargetGene")
+   message(sprintf("--- testing get/setTargetGene"))
    #checkTrue(is.null(getTargetGene(trenaProj)))
    setTargetGene(trenaProj, "PIGF")           # a placental gene, not in the IGAP project
    checkEquals(getTargetGene(trenaProj), "PIGF")
 
-   printf("--- getting transcript info for %s", "PIGF")
+   message(sprintf("--- getting transcript info for %s", "PIGF"))
    tbl.transcripts <- getTranscriptsTable(trenaProj)
    checkTrue(nrow(tbl.transcripts) == 1)
    checkEquals(tbl.transcripts$geneSymbol, "PIGF")
@@ -146,7 +146,7 @@ test_ctor <- function()
 #------------------------------------------------------------------------------------------------------------------------
 test_ctor_withFootprintDatabasePortSpecified <- function()
 {
-   printf("--- test_ctor_withFootprintDatabasePortSpecified")
+   message(sprintf("--- test_ctor_withFootprintDatabasePortSpecified"))
 
    trenaProj <- TrenaProjectHG38(projectName="HG38 test",
                                  supportedGenes=genes,
@@ -167,7 +167,7 @@ test_ctor_withFootprintDatabasePortSpecified <- function()
 #------------------------------------------------------------------------------------------------------------------------
 test_getEnhancers <- function()
 {
-   printf("--- test_getEnhancers")
+   message(sprintf("--- test_getEnhancers"))
 
    setTargetGene(trenaProj, "TREM2")
    tbl.trem2 <- getEnhancers(trenaProj)
@@ -186,7 +186,7 @@ test_getEnhancers <- function()
 #------------------------------------------------------------------------------------------------------------------------
 test_getPrimaryTranscriptInfo <- function()
 {
-   printf("--- test_getPrimaryTranscriptInfo")
+   message(sprintf("--- test_getPrimaryTranscriptInfo"))
 
    checkEquals(getTranscriptsTable(trenaProj, "CRH")$tss, 66178725)
    # checkEquals(getPrimaryTranscriptInfo(trenaProj, "CRH")$tss, 66178725)
