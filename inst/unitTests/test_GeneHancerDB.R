@@ -40,7 +40,7 @@ test_foxo6 <- function()
       # ENCODE and Ensembl use different capitalization
    tissues <-  c("placenta", "Placenta")
    tbl <- retrieveEnhancersFromDatabase(ghdb, "FOXO6", tissues)
-   XFcheckTrue(is.data.frame(tbl))
+   checkTrue(is.data.frame(tbl))
    checkEquals(nrow(tbl), 13)
    checkTrue(all(tissues %in% tbl$tissue))
    checkEquals(length(which(duplicated(tbl$sig))), 0)  # no duplicated regions
