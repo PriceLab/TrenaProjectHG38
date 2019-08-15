@@ -1,6 +1,5 @@
 #' @import trena
 #' @import TrenaProject
-#' @importMethodsFrom TrenaProject getEnhancers
 #' @importMethodsFrom TrenaProject getEncodeDHS
 #' @importMethodsFrom TrenaProject getChipSeq
 #' @importMethodsFrom TrenaProject getGeneRegion
@@ -33,10 +32,7 @@
 #' @param supportedGenes a vector of character strings
 #' @param footprintDatabaseHost Character string (e.g., "khaleesi.systemsbiology.net")
 #' @param footprintDatabaseNames Character string (e.g., "hint_brain_20")
-#' @param expressionDirectory A string pointing to a collection of RData expression matrices
-#' @param genomicRegionsDirectory A string pointing to a collection of RData genomic region bed-type files
-#' @param variantsDirectory A string pointing to a collection of RData variant files
-#' @param covariatesFile  the (optional) name of a covariates files
+#' @param packageDataDirectory A string pointing to the parent of a more-or-less standard set of data subdirectories
 #' @param quiet A logical indicating whether or not the Trena object should print output
 #'
 #' @return An object of the TrenaProjectHG38 class
@@ -50,10 +46,7 @@ TrenaProjectHG38 <- function(projectName,
                              footprintDatabaseHost,
                              footprintDatabaseNames,
                              footprintDatabasePort=5432,
-                             expressionDirectory,
-                             genomicRegionsDirectory,
-                             variantsDirectory,
-                             covariatesFile,
+                             packageDataDirectory,
                              quiet)
 {
 
@@ -63,46 +56,44 @@ TrenaProjectHG38 <- function(projectName,
    stopifnot(file.exists(geneInfoTable.path))
 
    .TrenaProjectHG38(TrenaProject(projectName,
-                                  supportedGenes=supportedGenes,
+                                  supportedGenes=character(0),
                                   genomeName="hg38",
                                   geneInfoTable.path=geneInfoTable.path,
                                   footprintDatabaseHost=footprintDatabaseHost,
-                                  footprintDatabaseNames=footprintDatabaseNames,
                                   footprintDatabasePort=footprintDatabasePort,
-                                  expressionDirectory=expressionDirectory,
-                                  genomicRegionsDirectory=genomicRegionsDirectory,
-                                  variantsDirectory=variantsDirectory,
-                                  covariatesFile=covariatesFile,
-                                  quiet=quiet))
+                                  footprintDatabaseNames=footprintDatabaseNames,
+                                  packageDataDirectory=packageDataDirectory,
+                                  quiet=quiet
+                                  ))
 
 
 } # ctor
 #------------------------------------------------------------------------------------------------------------------------
-#' Get all the enhancer regions for the gene
-#'
-#' @rdname getEnhancers
-#' @aliases getEnhancers
-#'
-#' @param obj An object of class TrenaProjectHG38
-#' @param targetGene default NA, in which case the current object's targetGene is used.
-#'
-#' @seealso setTargetGene
-#'
-#' @export
-
-setMethod('getEnhancers',  'TrenaProjectHG38',
-
-     function(obj, targetGene=NA_character_){
-        if(is.na(targetGene))
-           targetGene <- getTargetGene(obj)
-        if(is.null(targetGene)) return(data.frame())
-        tbl.enhancers <- data.frame() # suppress R CMD CHECK NOTE
-        full.path <- system.file(package="TrenaProjectHG38", "extdata", "genomeAnnotation", "geneHancer.v4.7.allGenes.RData")
-        stopifnot(file.exists(full.path))
-        load(full.path)
-        subset(tbl.enhancers, toupper(geneSymbol) == toupper(targetGene))
-        })
-
+## #' Get all the enhancer regions for the gene
+## #'
+## #' @rdname getEnhancers
+## #' @aliases getEnhancers
+## #'
+## #' @param obj An object of class TrenaProjectHG38
+## #' @param targetGene default NA, in which case the current object's targetGene is used.
+## #'
+## #' @seealso setTargetGene
+## #'
+## #' @export
+##
+## setMethod('getEnhancers',  'TrenaProjectHG38',
+##
+##      function(obj, targetGene=NA_character_){
+##         if(is.na(targetGene))
+##            targetGene <- getTargetGene(obj)
+##         if(is.null(targetGene)) return(data.frame())
+##         tbl.enhancers <- data.frame() # suppress R CMD CHECK NOTE
+##         full.path <- system.file(package="TrenaProjectHG38", "extdata", "genomeAnnotation", "geneHancer.v4.7.allGenes.RData")
+##         stopifnot(file.exists(full.path))
+##         load(full.path)
+##         subset(tbl.enhancers, toupper(geneSymbol) == toupper(targetGene))
+##         })
+##
 #------------------------------------------------------------------------------------------------------------------------
 #' Get all the dnase hypersensitivity regions in the expansive region covered by the enhancer
 #'
