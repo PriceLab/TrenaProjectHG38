@@ -42,7 +42,6 @@
 #'
 TrenaProjectHG38 <- function(projectName,
                              supportedGenes,
-                             geneInfoTable.path,
                              footprintDatabaseHost,
                              footprintDatabaseNames,
                              footprintDatabasePort=5432,

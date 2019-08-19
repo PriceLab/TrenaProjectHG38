@@ -9,8 +9,6 @@ if(!exists("trenaProj")){
 
    genes <- c("TREM2", "INPP5D")
    genomeName <- "hg38"
-   geneInfoTable.path <- system.file(package="TrenaProjectHG38", "extdata", "geneInfoTable.RData")
-   stopifnot(file.exists(geneInfoTable.path))
 
    footprintDatabaseHost <- "khaleesi.systemsbiology.net"
    footprintDatabaseNames <- c("brain_hint_20, brain_wellington_16")
@@ -19,7 +17,6 @@ if(!exists("trenaProj")){
 
    trenaProj <- TrenaProjectHG38(projectName="HG38 test",
                                  supportedGenes=genes,
-                                 geneInfoTable.path=geneInfoTable.path,
                                  footprintDatabaseHost=footprintDatabaseHost,
                                  footprintDatabaseNames=footprintDatabaseNames,
                                  packageDataDirectory=packageDataDirectory,
@@ -137,7 +134,6 @@ test_ctor_withFootprintDatabasePortSpecified <- function()
 
    trenaProj <- TrenaProjectHG38(projectName="HG38 test",
                                  supportedGenes=genes,
-                                 geneInfoTable.path=geneInfoTable.path,
                                  footprintDatabaseHost=footprintDatabaseHost,
                                  footprintDatabasePort=5433,
                                  footprintDatabaseNames=footprintDatabaseNames,

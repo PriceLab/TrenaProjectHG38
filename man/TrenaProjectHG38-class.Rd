@@ -7,9 +7,9 @@
 \alias{TrenaProjectHG38}
 \title{TrenaProjectHG38}
 \usage{
-TrenaProjectHG38(projectName, supportedGenes, geneInfoTable.path,
-  footprintDatabaseHost, footprintDatabaseNames,
-  footprintDatabasePort = 5432, packageDataDirectory, quiet)
+TrenaProjectHG38(projectName, supportedGenes, footprintDatabaseHost,
+  footprintDatabaseNames, footprintDatabasePort = 5432,
+  packageDataDirectory, quiet)
 }
 \arguments{
 \item{supportedGenes}{a vector of character strings}
