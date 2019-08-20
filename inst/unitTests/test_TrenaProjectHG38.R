@@ -43,7 +43,7 @@ test_ctor <- function()
                          "entrez", "appris", "tsl", "transcript", "type")
    checkEquals(colnames(tbl.geneInfo), geneInfo.columns)
 
-   checkEquals(getSupportedGenes(trenaProj), character(0))
+   checkEquals(getSupportedGenes(trenaProj), c("TREM2", "INPP5D"))
    checkEquals(getFootprintDatabaseHost(trenaProj), footprintDatabaseHost)
    checkEquals(getFootprintDatabaseNames(trenaProj), footprintDatabaseNames)
 
@@ -175,6 +175,58 @@ test_getPrimaryTranscriptInfo <- function()
    # checkEquals(getPrimaryTranscriptInfo(trenaProj)$tss, 41163176)
 
 } # test_getPrimaryTranscriptInfo
+#------------------------------------------------------------------------------------------------------------------------
+test_getGeneRegulatoryRegions <- function()
+{
+   message(sprintf("--- test_getGeneRegulatoryRegions"))
+   all.tissues <- getGeneRegulatoryTissues(trenaProj);
+
+   tbl <- getGeneRegulatoryRegions(trenaProj, "TREM2", "all") # tissues)
+   checkTrue(nrow(tbl) >= 9)  # tre on 19 aud 2019
+
+   tbl.transcript <- getTranscriptsTable(trenaProj, targetGene="TREM2")[1,]
+   checkEquals(tbl.transcript$strand, -1)
+   checkEquals(tbl.transcript$tss, 41163176)
+
+   brain.tissues <-  c("brain", "Brain")
+   checkTrue(!any(brain.tissues %in% tbl$tissue))
+
+   suppressWarnings({
+      tbl.classicalPromoter.10kb <- getGeneRegulatoryRegions(trenaProj, "TREM2", brain.tissues)
+      with(tbl.classicalPromoter.10kb, {
+              checkEquals(start, 41163176 - 5000);
+              checkEquals(end,   41163176 + 5000);
+              })
+      tbl.classicalPromoter.small <- getGeneRegulatoryRegions(trenaProj, "TREM2", brain.tissues,
+                                                             fallback.upstream=3, fallback.downstream=10)
+      with(tbl.classicalPromoter.small, {
+              checkEquals(start, 41163176 - 10);
+              checkEquals(end,   41163176 + 3);
+              })
+       }) # suppressWarnings
+
+      # INPP5D is on the positive strand.  check the fallback calculation for that case
+
+   tbl.transcript <- getTranscriptsTable(trenaProj, targetGene="INPP5D")[1,]
+   checkEquals(tbl.transcript$strand, 1)
+   checkEquals(tbl.transcript$tss, 233060398)
+
+   suppressWarnings({
+      tbl.classicalPromoter.10kb <- getGeneRegulatoryRegions(trenaProj, "INPP5D", "bogus")
+      with(tbl.classicalPromoter.10kb, {
+              checkEquals(start, 233060398-5000);
+              checkEquals(end,   233060398+5000)
+              })
+      tbl.classicalPromoter.small <- getGeneRegulatoryRegions(trenaProj, "INPP5D", "bogus",
+                                                              fallback.upstream=3, fallback.downstream=10)
+      with(tbl.classicalPromoter.small, {
+              checkEquals(start, 233060398-3);
+              checkEquals(end,   233060398+10)
+              })
+       }) # suppressWarnings
+
+
+} # test_getGeneRegulatoryRegions
 #------------------------------------------------------------------------------------------------------------------------
 if(!interactive())
    runTests()

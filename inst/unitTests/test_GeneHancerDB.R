@@ -13,6 +13,7 @@ runTests <- function()
    test_ctor()
    test_listTissues()
    test_foxo6()
+   test_failureByTissue()
 
 } # runTests
 #------------------------------------------------------------------------------------------------------------------------
@@ -30,7 +31,22 @@ test_listTissues <- function()
    checkTrue(length(tissues) > 300)
    checkTrue(all(c("placenta", "Placenta") %in% tissues))
 
+   tissues.gata2 <- listTissues(ghdb, targetGene="GATA2")
+   checkTrue(length(tissues.gata2) > 120)
+   checkTrue(length(tissues.gata2) < 130)
+
 } # test_listTissues
+#------------------------------------------------------------------------------------------------------------------------
+test_.eliminateDupsCollapseTissues <- function()
+{
+   printf("--- test_.eliminateDupsCollapseTissues")
+
+   load(system.file(package="TrenaProjectHG38", "extdata", "testing", "tbl.gh.results.toTestReductionPreservingTissues.RData"))
+   checkEquals(dim(tbl), c(956, 17))
+   tbl.trimmed <- TrenaProjectHG38:::.eliminateDupsCollapseTissues(tbl)
+   checkEquals(dim(tbl.trimmed), c(50, 16))
+
+} # test_.eliminateDupsCollapseTissues
 #------------------------------------------------------------------------------------------------------------------------
 # a simple test case, chosen for historical (and no longer important) reasons
 test_foxo6 <- function()
@@ -51,6 +67,26 @@ test_foxo6 <- function()
    checkEquals(length(which(duplicated(tbl.all$sig))), 0)  # no duplicated regions
 
 } # test_gata6
+#------------------------------------------------------------------------------------------------------------------------
+# a simple test case, chosen for historical (and no longer important) reasons
+test_failureByTissue <- function()
+{
+   message(sprintf("--- test_failureByTissue"))
+
+   trem2.tissues <- retrieveEnhancersFromDatabase(ghdb, "TREM2", tissues="all")$tissue
+   tissues <-  c("brain", "Brain")
+   checkTrue(length(intersect(tissues, trem2.tissues)) == 0)
+
+   suppressWarnings(
+      tbl <- retrieveEnhancersFromDatabase(ghdb, "TREM2", tissues)
+      )
+   checkEquals(nrow(tbl), 0)
+
+      # double check now that at least one tissue reports for TREM2
+   tbl <- retrieveEnhancersFromDatabase(ghdb, "TREM2", "placenta")
+   checkTrue(nrow(tbl) > 0)
+
+} # test_failureByTissue
 #------------------------------------------------------------------------------------------------------------------------
 if(!interactive())
    runTests()

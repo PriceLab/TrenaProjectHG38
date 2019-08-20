@@ -4,6 +4,8 @@
 #' @importMethodsFrom TrenaProject getChipSeq
 #' @importMethodsFrom TrenaProject getGeneRegion
 #' @importMethodsFrom TrenaProject getGeneEnhancersRegion
+#' @importMethodsFrom TrenaProject getGeneRegulatoryTissues
+#' @importMethodsFrom TrenaProject getGeneRegulatoryRegions
 #' @importFrom RPostgreSQL dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
 #' @import RPostgreSQL
 #' @import org.Hs.eg.db
@@ -17,7 +19,11 @@
 #'
 #' @import methods
 
-.TrenaProjectHG38 <- setClass("TrenaProjectHG38", contains="TrenaProject")
+.TrenaProjectHG38 <- setClass("TrenaProjectHG38",
+                              contains="TrenaProject",
+                              representation=representation(
+                                 genehancer="GeneHancerDB"
+                                 ))
 
 #------------------------------------------------------------------------------------------------------------------------
 #' Define an object of class TrenaProjectHG38
@@ -53,9 +59,10 @@ TrenaProjectHG38 <- function(projectName,
 
    geneInfoTable.path <- system.file(package="TrenaProjectHG38", "extdata", "geneInfoTable_hg38.RData")
    stopifnot(file.exists(geneInfoTable.path))
+   ghdb <- GeneHancerDB()
 
    .TrenaProjectHG38(TrenaProject(projectName,
-                                  supportedGenes=character(0),
+                                  supportedGenes=supportedGenes,
                                   genomeName="hg38",
                                   geneInfoTable.path=geneInfoTable.path,
                                   footprintDatabaseHost=footprintDatabaseHost,
@@ -63,36 +70,89 @@ TrenaProjectHG38 <- function(projectName,
                                   footprintDatabaseNames=footprintDatabaseNames,
                                   packageDataDirectory=packageDataDirectory,
                                   quiet=quiet
-                                  ))
+                                  ),
+                     genehancer=ghdb)
 
 
 } # ctor
 #------------------------------------------------------------------------------------------------------------------------
-## #' Get all the enhancer regions for the gene
-## #'
-## #' @rdname getEnhancers
-## #' @aliases getEnhancers
-## #'
-## #' @param obj An object of class TrenaProjectHG38
-## #' @param targetGene default NA, in which case the current object's targetGene is used.
-## #'
-## #' @seealso setTargetGene
-## #'
-## #' @export
-##
-## setMethod('getEnhancers',  'TrenaProjectHG38',
-##
-##      function(obj, targetGene=NA_character_){
-##         if(is.na(targetGene))
-##            targetGene <- getTargetGene(obj)
-##         if(is.null(targetGene)) return(data.frame())
-##         tbl.enhancers <- data.frame() # suppress R CMD CHECK NOTE
-##         full.path <- system.file(package="TrenaProjectHG38", "extdata", "genomeAnnotation", "geneHancer.v4.7.allGenes.RData")
-##         stopifnot(file.exists(full.path))
-##         load(full.path)
-##         subset(tbl.enhancers, toupper(geneSymbol) == toupper(targetGene))
-##         })
-##
+#' Get gene regulatory regions for the current target gene, or one explicitly named, using the specified strategy
+#'
+#' @rdname getGeneRegulatoryRegions
+#' @aliases getGeneRegulatoryRegions
+#'
+#' @param obj An object of class TrenaProjectHG38
+#' @param targetGene default NA, in which case the current object's targetGene is used.
+#'
+#' @seealso setTargetGene
+#'
+#' @export
+
+setMethod('getGeneRegulatoryRegions',  'TrenaProjectHG38',
+
+    function(obj, targetGene=NA, tissues="all", fallback.upstream=5000, fallback.downstream=5000){
+
+#------------------------------------------------------------------------------------------------------------------------
+#' Get gene regulatory regions for the current target gene, or one explicitly named, using the specified strategy
+#'
+#' @rdname getGeneRegulatoryRegions
+#' @aliases getGeneRegulatoryRegions
+#'
+#' @param obj An object of class TrenaProjectHG38
+#' @param targetGene default NA, in which case the current object's targetGene is used.
+#'
+#' @seealso setTargetGene
+#'
+#' @export
+
+setMethod('getGeneRegulatoryRegions',  'TrenaProjectHG38',
+
+    function(obj, targetGene=NA, tissues="all", fallback.upstream=5000, fallback.downstream=5000){
+       if(is.na(targetGene))
+          targetGene <- getTargetGene(obj)
+       tbl <- retrieveEnhancersFromDatabase(obj@genehancer, targetGene, tissues)
+       if(nrow(tbl) == 0){
+          tbl.transcripts <- getTranscriptsTable(obj, targetGene)  # just one row, by convention
+          tss <- tbl.transcripts$tss[1]
+          strand <- tbl.transcripts$strand[1]
+          start.loc <- tss - fallback.upstream
+          end.loc   <- tss + fallback.downstream
+          if(strand == -1){
+             start.loc <- tss - fallback.downstream
+             end.loc   <- tss + fallback.upstream
+             }
+          chrom <- tbl.transcripts$chrom[1]
+          tbl.fallback <- data.frame(chrom=chrom, start=start.loc, end=end.loc, gene=targetGene,
+                                     eqtl=NA, hic=NA, erna=NA, coexpression=NA, distancescore=NA, tssproximity=NA,
+                                     combinedscore=NA, elite=NA, source=NA, tissue=NA, type=NA, ghid=NA, sig=NA,
+                                     stringsAsFactors=FALSE)
+          return(tbl.fallback)
+          }
+       tbl
+       })
+
+#------------------------------------------------------------------------------------------------------------------------
+#' Get all the enhancer regions for the gene
+#'
+#' @rdname getEnhancers
+#' @aliases getEnhancers
+#'
+#' @param obj An object of class TrenaProjectHG38
+#' @param targetGene default NA, in which case the current object's targetGene is used.
+#'
+#' @seealso setTargetGene
+#'
+#' @export
+
+setMethod('getEnhancers',  'TrenaProjectHG38',
+
+     function(obj, targetGene=NA_character_, tissues="all"){
+        if(is.na(targetGene))
+           targetGene <- getTargetGene(obj)
+        if(is.null(targetGene)) return(data.frame())
+        tbl <- retrieveEnhancersFromDatabase(obj@genehancer, targetGene, tissues)
+        })
+
 #------------------------------------------------------------------------------------------------------------------------
 #' Get all the dnase hypersensitivity regions in the expansive region covered by the enhancer
 #'

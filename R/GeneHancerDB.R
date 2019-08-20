@@ -20,7 +20,7 @@
 #------------------------------------------------------------------------------------------------------------------------
 setGeneric('retrieveEnhancersFromDatabase', signature='obj', function(obj, targetGene, tissues)
               standardGeneric('retrieveEnhancersFromDatabase'))
-setGeneric('listTissues', signature='obj', function(obj) standardGeneric('listTissues'))
+setGeneric('listTissues', signature='obj', function(obj, targetGene=NA) standardGeneric('listTissues'))
 #------------------------------------------------------------------------------------------------------------------------
 #' Create a GeneHancerDB connection
 #'
@@ -90,6 +90,10 @@ setMethod('retrieveEnhancersFromDatabase',  'GeneHancerDB',
         query <- sprintf(query, targetGene, tissueClause)
 
         tbl <- dbGetQuery(obj@db, query)
+        if(nrow(tbl) == 0){
+           warning(sprintf("no GeneHancer regions for %s in tissues %s", targetGene, paste(tissues, collapse=",")))
+           return(data.frame())
+           }
 
            #------------------------------------------------------------
            # todo: when eliminating duplicates, collecte the sometimes
@@ -98,6 +102,7 @@ setMethod('retrieveEnhancersFromDatabase',  'GeneHancerDB',
            #------------------------------------------------------------
 
         tbl$sig <- with(tbl, sprintf("%s:%d-%d", chrom, start, end))
+        browser()
         dups <- which(duplicated(tbl$sig))
         tbl.1 <- tbl
         if(length(dups) > 0)
@@ -115,19 +120,56 @@ setMethod('retrieveEnhancersFromDatabase',  'GeneHancerDB',
         })
 
 #------------------------------------------------------------------------------------------------------------------------
+.eliminateDupsCollapseTissues <- function(tbl)
+{
+
+   tbl.2 <- tbl
+   sig.uniq <- unique(tbl.2$sig)
+   sig.census <- lapply(sig.uniq, function(sig) grep(sig, tbl.2$sig))
+   names(sig.census) <- sig.uniq
+
+   tissues.by.sig <- lapply(sig.uniq, function(sig) tbl.2[grep(sig, tbl.2$sig), "tissue"])
+   tissues.collapsed.by.sig <- lapply(tissues.by.sig, function(tissues) paste(tissues, collapse=";"))
+   names(tissues.collapsed.by.sig) <- sig.uniq
+
+   dups <- which(duplicated(tbl.2$sig))
+   length(dups)
+   if(length(dups) > 0)
+      tbl.3 <- tbl.2[-dups,]
+
+   tissues.collapsed.by.sig
+   length(tissues.collapsed.by.sig)
+
+   indices <- unlist(lapply(names(tissues.collapsed.by.sig), function(sig) grep(sig, tbl.3$sig)))
+   indices
+
+   tbl.3$tissue[indices] <- as.character(tissues.collapsed.by.sig)
+   coi <- c("chrom","start","end","gene","eqtl","hic","erna","coexpression","distancescore","tssproximity","combinedscore","elite","source","type","ghid","tissue")
+   tbl.4 <- tbl.3[, coi]
+   invisible(tbl.4)
+
+} # .eliminateDupsCollapseTissues
+#------------------------------------------------------------------------------------------------------------------------
 #' Return a character vector containing all of the tissues known to GeneHancer
 #'
 #' @rdname listTissues
 #' @aliases listTissues
 #'
 #' @param obj An object of class GeneHancerDB
+#' @param targetGene A character string, default NA in which case all tissues for all genes are returned
 #'
 #' @export
 
 setMethod('listTissues', 'GeneHancerDB',
 
-    function(obj){
-      dbGetQuery(obj@db, "select distinct tissue from tissues")$tissue
-      })
+    function(obj, targetGene=NA){
+       query <- "select distinct tissue from tissues"
+       if(!is.na(targetGene)){
+          query.p1 <- "select distinct t.tissue from associations as a, tissues as t where "
+          query.p2 <- sprintf("a.symbol='%s' AND a.ghid=t.ghid", targetGene)
+          query <- paste0(query.p1, query.p2)
+          }
+       dbGetQuery(obj@db, query)$tissue
+       })
 
 #------------------------------------------------------------------------------------------------------------------------
