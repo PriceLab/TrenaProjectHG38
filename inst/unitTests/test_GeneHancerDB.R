@@ -12,6 +12,7 @@ runTests <- function()
 {
    test_ctor()
    test_listTissues()
+   test_.eliminateDupsCollapseTissues()
    test_foxo6()
    test_failureByTissue()
 
@@ -39,12 +40,17 @@ test_listTissues <- function()
 #------------------------------------------------------------------------------------------------------------------------
 test_.eliminateDupsCollapseTissues <- function()
 {
-   printf("--- test_.eliminateDupsCollapseTissues")
+   message(sprintf("--- test_.eliminateDupsCollapseTissues"))
 
    load(system.file(package="TrenaProjectHG38", "extdata", "testing", "tbl.gh.results.toTestReductionPreservingTissues.RData"))
    checkEquals(dim(tbl), c(956, 17))
    tbl.trimmed <- TrenaProjectHG38:::.eliminateDupsCollapseTissues(tbl)
    checkEquals(dim(tbl.trimmed), c(50, 16))
+
+      # do a rough assay of the collapsed tissue column
+   spread <- fivenum(nchar(tbl.trimmed$tissue))  # [1]   16   62  156  338 2213
+   checkTrue(spread[1] < 20)
+   checkTrue(spread[5] > 2000)
 
 } # test_.eliminateDupsCollapseTissues
 #------------------------------------------------------------------------------------------------------------------------
@@ -60,11 +66,14 @@ test_foxo6 <- function()
    checkEquals(nrow(tbl), 13)
    checkTrue(all(tissues %in% tbl$tissue))
    checkEquals(length(which(duplicated(tbl$sig))), 0)  # no duplicated regions
+   checkTrue(length(grep(";", tbl$tissue)) > 0)        # 4 instances of "Placenta;placenta"
 
    tbl.all <- retrieveEnhancersFromDatabase(ghdb, "FOXO6", tissues="all")
    checkTrue(is.data.frame(tbl.all))
    checkEquals(nrow(tbl.all), 43)
    checkEquals(length(which(duplicated(tbl.all$sig))), 0)  # no duplicated regions
+   checkTrue(max(nchar(tbl.all$tissue)) > 2000)
+   checkTrue(length(grep(";", tbl.all$tissue)) > 40)       # most tissue values are semicolor separated multiples
 
 } # test_gata6
 #------------------------------------------------------------------------------------------------------------------------

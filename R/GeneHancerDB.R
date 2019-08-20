@@ -95,18 +95,8 @@ setMethod('retrieveEnhancersFromDatabase',  'GeneHancerDB',
            return(data.frame())
            }
 
-           #------------------------------------------------------------
-           # todo: when eliminating duplicates, collecte the sometimes
-           #       multiple tissues in which the same enhancer is found
-           #       pshannon (14 aug 2019)
-           #------------------------------------------------------------
-
         tbl$sig <- with(tbl, sprintf("%s:%d-%d", chrom, start, end))
-        browser()
-        dups <- which(duplicated(tbl$sig))
-        tbl.1 <- tbl
-        if(length(dups) > 0)
-           tbl.1 <- tbl[-dups, ]
+        tbl.trimmed <- .eliminateDupsCollapseTissues(tbl)
 
           # our current best guess is that eQTL, Hi-C, and enhancer RNA are credible indicators
           # of enhancer/gene association.  so keep only the rows with a value in one or more
@@ -114,15 +104,13 @@ setMethod('retrieveEnhancersFromDatabase',  'GeneHancerDB',
           # combinedscore is some unstated function of all the scores.  we include as a fallback
           # an alternative threshold, just in case.
 
-        tbl.2 <- subset(tbl.1, !(is.nan(eqtl) & is.nan(hic) & is.nan(erna)) | combinedscore >= 5)
-
+        tbl.2 <- subset(tbl.trimmed, !(is.nan(eqtl) & is.nan(hic) & is.nan(erna)) | combinedscore >= 5)
         return(tbl.2)
         })
 
 #------------------------------------------------------------------------------------------------------------------------
 .eliminateDupsCollapseTissues <- function(tbl)
 {
-
    tbl.2 <- tbl
    sig.uniq <- unique(tbl.2$sig)
    sig.census <- lapply(sig.uniq, function(sig) grep(sig, tbl.2$sig))
@@ -133,17 +121,17 @@ setMethod('retrieveEnhancersFromDatabase',  'GeneHancerDB',
    names(tissues.collapsed.by.sig) <- sig.uniq
 
    dups <- which(duplicated(tbl.2$sig))
-   length(dups)
-   if(length(dups) > 0)
+
+   tbl.3 <- tbl.2   # optimistic, remains true if no dups in tabple
+
+   if(length(dups) > 0){
       tbl.3 <- tbl.2[-dups,]
+      tissues.collapsed.by.sig
+      length(tissues.collapsed.by.sig)
+      indices <- unlist(lapply(names(tissues.collapsed.by.sig), function(sig) grep(sig, tbl.3$sig)))
+      tbl.3$tissue[indices] <- as.character(tissues.collapsed.by.sig)
+      }
 
-   tissues.collapsed.by.sig
-   length(tissues.collapsed.by.sig)
-
-   indices <- unlist(lapply(names(tissues.collapsed.by.sig), function(sig) grep(sig, tbl.3$sig)))
-   indices
-
-   tbl.3$tissue[indices] <- as.character(tissues.collapsed.by.sig)
    coi <- c("chrom","start","end","gene","eqtl","hic","erna","coexpression","distancescore","tssproximity","combinedscore","elite","source","type","ghid","tissue")
    tbl.4 <- tbl.3[, coi]
    invisible(tbl.4)

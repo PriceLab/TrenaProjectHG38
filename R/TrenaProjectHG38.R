@@ -91,23 +91,6 @@ TrenaProjectHG38 <- function(projectName,
 setMethod('getGeneRegulatoryRegions',  'TrenaProjectHG38',
 
     function(obj, targetGene=NA, tissues="all", fallback.upstream=5000, fallback.downstream=5000){
-
-#------------------------------------------------------------------------------------------------------------------------
-#' Get gene regulatory regions for the current target gene, or one explicitly named, using the specified strategy
-#'
-#' @rdname getGeneRegulatoryRegions
-#' @aliases getGeneRegulatoryRegions
-#'
-#' @param obj An object of class TrenaProjectHG38
-#' @param targetGene default NA, in which case the current object's targetGene is used.
-#'
-#' @seealso setTargetGene
-#'
-#' @export
-
-setMethod('getGeneRegulatoryRegions',  'TrenaProjectHG38',
-
-    function(obj, targetGene=NA, tissues="all", fallback.upstream=5000, fallback.downstream=5000){
        if(is.na(targetGene))
           targetGene <- getTargetGene(obj)
        tbl <- retrieveEnhancersFromDatabase(obj@genehancer, targetGene, tissues)
