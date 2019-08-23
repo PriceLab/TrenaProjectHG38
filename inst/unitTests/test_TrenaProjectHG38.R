@@ -28,7 +28,7 @@ runTests <- function()
 {
    test_ctor()
    test_ctor_withFootprintDatabasePortSpecified()
-   # test_getEnhancers()
+   test_getEnhancers()
    test_getPrimaryTranscriptInfo()
 
 } # runTests
@@ -144,24 +144,25 @@ test_ctor_withFootprintDatabasePortSpecified <- function()
 
 } # test_ctor_withFootprintDatabsePortSpecified
 #------------------------------------------------------------------------------------------------------------------------
-# test_getEnhancers <- function()
-# {
-#    message(sprintf("--- test_getEnhancers"))
-#
-#    setTargetGene(trenaProj, "TREM2")
-#    tbl.trem2 <- getEnhancers(trenaProj)
-#    checkTrue(all(tbl.trem2$geneSymbol == "TREM2"))
-#
-#    tbl.mef2c <- getEnhancers(trenaProj, "MEF2C")
-#    checkTrue(all(tbl.mef2c$geneSymbol == "MEF2C"))
-#
-#    tbl.trem2.again <- getEnhancers(trenaProj, "TREM2")
-#    checkEquals(tbl.trem2, tbl.trem2.again)
-#
-#    tbl.bogus <- getEnhancers(trenaProj, "bogus99")
-#    checkEquals(nrow(tbl.bogus), 0)
-#
-# } # test_getEnhancers
+test_getEnhancers <- function()
+{
+   message(sprintf("--- test_getEnhancers"))
+
+   all.tissues <- getEnhancerTissues(trenaProj)
+   setTargetGene(trenaProj, "TREM2")
+   tbl.trem2.all <- getEnhancers(trenaProj)
+   checkTrue(all(tbl.trem2.all$geneSymbol == "TREM2"))
+
+   tbl.mef2c <- getEnhancers(trenaProj, "MEF2C")
+   checkTrue(all(tbl.mef2c$geneSymbol == "MEF2C"))
+
+   tbl.trem2.again <- getEnhancers(trenaProj, "TREM2")
+   checkEquals(tbl.trem2.all, tbl.trem2.again)
+
+   suppressWarnings(tbl.bogus <- getEnhancers(trenaProj, "bogus99"))
+   checkEquals(nrow(tbl.bogus), 0)
+
+} # test_getEnhancers
 #------------------------------------------------------------------------------------------------------------------------
 test_getPrimaryTranscriptInfo <- function()
 {

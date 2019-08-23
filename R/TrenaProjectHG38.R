@@ -115,6 +115,24 @@ setMethod('getGeneRegulatoryRegions',  'TrenaProjectHG38',
        })
 
 #------------------------------------------------------------------------------------------------------------------------
+#' Get all the enhancer tissues included in the current genehancer
+#'
+#' @rdname getEnhancerTissues
+#' @aliases getEnhancerTissues
+#'
+#' @param obj An object of class TrenaProjectHG38
+#'
+#' @seealso getEnhancers
+#'
+#' @export
+
+setMethod('getEnhancerTissues',  'TrenaProjectHG38',
+
+     function(obj){
+        listTissues(obj@genehancer)
+        })
+
+#------------------------------------------------------------------------------------------------------------------------
 #' Get all the enhancer regions for the gene
 #'
 #' @rdname getEnhancers
