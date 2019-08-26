@@ -7,8 +7,10 @@
 \title{Get gene regulatory regions for the current target gene, or one explicitly named, using the specified strategy}
 \usage{
 \S4method{getGeneRegulatoryRegions}{TrenaProjectHG38}(obj,
-  targetGene = NA, tissues = "all", fallback.upstream = 5000,
-  fallback.downstream = 5000)
+  targetGene = NA, tissues = "all",
+  generic.promoter.fallback.upstream = 0,
+  generic.promoter.fallback.downstream = 0,
+  proximal.promoter.upstream = 0, proximal.promoter.downstream = 0)
 }
 \arguments{
 \item{obj}{An object of class TrenaProjectHG38}

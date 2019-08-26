@@ -15,6 +15,7 @@ runTests <- function()
    test_.eliminateDupsCollapseTissues()
    test_foxo6()
    test_failureByTissue()
+   test_queryUnknownGene()
 
 } # runTests
 #------------------------------------------------------------------------------------------------------------------------
@@ -96,6 +97,13 @@ test_failureByTissue <- function()
    checkTrue(nrow(tbl) > 0)
 
 } # test_failureByTissue
+#------------------------------------------------------------------------------------------------------------------------
+test_queryUnknownGene <- function()
+{
+   message(sprintf("--- test_queryUnknownGene"))
+
+
+} # test_queryUnknownGene
 #------------------------------------------------------------------------------------------------------------------------
 if(!interactive())
    runTests()

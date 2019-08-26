@@ -90,6 +90,7 @@ setMethod('retrieveEnhancersFromDatabase',  'GeneHancerDB',
         query <- sprintf(query, targetGene, tissueClause)
 
         tbl <- dbGetQuery(obj@db, query)
+
         if(nrow(tbl) == 0){
            warning(sprintf("no GeneHancer regions for %s in tissues %s", targetGene, paste(tissues, collapse=",")))
            return(data.frame())
