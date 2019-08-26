@@ -7,10 +7,9 @@
 \alias{TrenaProjectHG38}
 \title{TrenaProjectHG38}
 \usage{
-TrenaProjectHG38(projectName, supportedGenes, geneInfoTable.path,
-  footprintDatabaseHost, footprintDatabaseNames,
-  footprintDatabasePort = 5432, expressionDirectory,
-  genomicRegionsDirectory, variantsDirectory, covariatesFile, quiet)
+TrenaProjectHG38(projectName, supportedGenes, footprintDatabaseHost,
+  footprintDatabaseNames, footprintDatabasePort = 5432,
+  packageDataDirectory, quiet)
 }
 \arguments{
 \item{supportedGenes}{a vector of character strings}
@@ -19,13 +18,7 @@ TrenaProjectHG38(projectName, supportedGenes, geneInfoTable.path,
 
 \item{footprintDatabaseNames}{Character string (e.g., "hint_brain_20")}
 
-\item{expressionDirectory}{A string pointing to a collection of RData expression matrices}
-
-\item{genomicRegionsDirectory}{A string pointing to a collection of RData genomic region bed-type files}
-
-\item{variantsDirectory}{A string pointing to a collection of RData variant files}
-
-\item{covariatesFile}{the (optional) name of a covariates files}
+\item{packageDataDirectory}{A string pointing to the parent of a more-or-less standard set of data subdirectories}
 
 \item{quiet}{A logical indicating whether or not the Trena object should print output}
 }

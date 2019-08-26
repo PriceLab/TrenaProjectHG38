@@ -1,10 +1,11 @@
 #' @import trena
 #' @import TrenaProject
-#' @importMethodsFrom TrenaProject getEnhancers
 #' @importMethodsFrom TrenaProject getEncodeDHS
 #' @importMethodsFrom TrenaProject getChipSeq
 #' @importMethodsFrom TrenaProject getGeneRegion
 #' @importMethodsFrom TrenaProject getGeneEnhancersRegion
+#' @importMethodsFrom TrenaProject getGeneRegulatoryTissues
+#' @importMethodsFrom TrenaProject getGeneRegulatoryRegions
 #' @importFrom RPostgreSQL dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
 #' @import RPostgreSQL
 #' @import org.Hs.eg.db
@@ -18,7 +19,11 @@
 #'
 #' @import methods
 
-.TrenaProjectHG38 <- setClass("TrenaProjectHG38", contains="TrenaProject")
+.TrenaProjectHG38 <- setClass("TrenaProjectHG38",
+                              contains="TrenaProject",
+                              representation=representation(
+                                 genehancer="GeneHancerDB"
+                                 ))
 
 #------------------------------------------------------------------------------------------------------------------------
 #' Define an object of class TrenaProjectHG38
@@ -33,10 +38,7 @@
 #' @param supportedGenes a vector of character strings
 #' @param footprintDatabaseHost Character string (e.g., "khaleesi.systemsbiology.net")
 #' @param footprintDatabaseNames Character string (e.g., "hint_brain_20")
-#' @param expressionDirectory A string pointing to a collection of RData expression matrices
-#' @param genomicRegionsDirectory A string pointing to a collection of RData genomic region bed-type files
-#' @param variantsDirectory A string pointing to a collection of RData variant files
-#' @param covariatesFile  the (optional) name of a covariates files
+#' @param packageDataDirectory A string pointing to the parent of a more-or-less standard set of data subdirectories
 #' @param quiet A logical indicating whether or not the Trena object should print output
 #'
 #' @return An object of the TrenaProjectHG38 class
@@ -46,14 +48,10 @@
 #'
 TrenaProjectHG38 <- function(projectName,
                              supportedGenes,
-                             geneInfoTable.path,
                              footprintDatabaseHost,
                              footprintDatabaseNames,
                              footprintDatabasePort=5432,
-                             expressionDirectory,
-                             genomicRegionsDirectory,
-                             variantsDirectory,
-                             covariatesFile,
+                             packageDataDirectory,
                              quiet)
 {
 
@@ -61,22 +59,79 @@ TrenaProjectHG38 <- function(projectName,
 
    geneInfoTable.path <- system.file(package="TrenaProjectHG38", "extdata", "geneInfoTable_hg38.RData")
    stopifnot(file.exists(geneInfoTable.path))
+   ghdb <- GeneHancerDB()
 
    .TrenaProjectHG38(TrenaProject(projectName,
                                   supportedGenes=supportedGenes,
                                   genomeName="hg38",
                                   geneInfoTable.path=geneInfoTable.path,
                                   footprintDatabaseHost=footprintDatabaseHost,
-                                  footprintDatabaseNames=footprintDatabaseNames,
                                   footprintDatabasePort=footprintDatabasePort,
-                                  expressionDirectory=expressionDirectory,
-                                  genomicRegionsDirectory=genomicRegionsDirectory,
-                                  variantsDirectory=variantsDirectory,
-                                  covariatesFile=covariatesFile,
-                                  quiet=quiet))
+                                  footprintDatabaseNames=footprintDatabaseNames,
+                                  packageDataDirectory=packageDataDirectory,
+                                  quiet=quiet
+                                  ),
+                     genehancer=ghdb)
 
 
 } # ctor
+#------------------------------------------------------------------------------------------------------------------------
+#' Get gene regulatory regions for the current target gene, or one explicitly named, using the specified strategy
+#'
+#' @rdname getGeneRegulatoryRegions
+#' @aliases getGeneRegulatoryRegions
+#'
+#' @param obj An object of class TrenaProjectHG38
+#' @param targetGene default NA, in which case the current object's targetGene is used.
+#'
+#' @seealso setTargetGene
+#'
+#' @export
+
+setMethod('getGeneRegulatoryRegions',  'TrenaProjectHG38',
+
+    function(obj, targetGene=NA, tissues="all", fallback.upstream=5000, fallback.downstream=5000){
+       if(is.na(targetGene))
+          targetGene <- getTargetGene(obj)
+       tbl <- retrieveEnhancersFromDatabase(obj@genehancer, targetGene, tissues)
+       if(nrow(tbl) == 0){
+          tbl.transcripts <- getTranscriptsTable(obj, targetGene)  # just one row, by convention
+          tss <- tbl.transcripts$tss[1]
+          strand <- tbl.transcripts$strand[1]
+          start.loc <- tss - fallback.upstream
+          end.loc   <- tss + fallback.downstream
+          if(strand == -1){
+             start.loc <- tss - fallback.downstream
+             end.loc   <- tss + fallback.upstream
+             }
+          chrom <- tbl.transcripts$chrom[1]
+          tbl.fallback <- data.frame(chrom=chrom, start=start.loc, end=end.loc, gene=targetGene,
+                                     eqtl=NA, hic=NA, erna=NA, coexpression=NA, distancescore=NA, tssproximity=NA,
+                                     combinedscore=NA, elite=NA, source=NA, tissue=NA, type=NA, ghid=NA, sig=NA,
+                                     stringsAsFactors=FALSE)
+          return(tbl.fallback)
+          }
+       tbl
+       })
+
+#------------------------------------------------------------------------------------------------------------------------
+#' Get all the enhancer tissues included in the current genehancer
+#'
+#' @rdname getEnhancerTissues
+#' @aliases getEnhancerTissues
+#'
+#' @param obj An object of class TrenaProjectHG38
+#'
+#' @seealso getEnhancers
+#'
+#' @export
+
+setMethod('getEnhancerTissues',  'TrenaProjectHG38',
+
+     function(obj){
+        listTissues(obj@genehancer)
+        })
+
 #------------------------------------------------------------------------------------------------------------------------
 #' Get all the enhancer regions for the gene
 #'
@@ -92,15 +147,11 @@ TrenaProjectHG38 <- function(projectName,
 
 setMethod('getEnhancers',  'TrenaProjectHG38',
 
-     function(obj, targetGene=NA_character_){
+     function(obj, targetGene=NA_character_, tissues="all"){
         if(is.na(targetGene))
            targetGene <- getTargetGene(obj)
         if(is.null(targetGene)) return(data.frame())
-        tbl.enhancers <- data.frame() # suppress R CMD CHECK NOTE
-        full.path <- system.file(package="TrenaProjectHG38", "extdata", "genomeAnnotation", "geneHancer.v4.7.allGenes.RData")
-        stopifnot(file.exists(full.path))
-        load(full.path)
-        subset(tbl.enhancers, toupper(geneSymbol) == toupper(targetGene))
+        tbl <- retrieveEnhancersFromDatabase(obj@genehancer, targetGene, tissues)
         })
 
 #------------------------------------------------------------------------------------------------------------------------
