@@ -4,7 +4,7 @@
 #' @importMethodsFrom TrenaProject getChipSeq
 #' @importMethodsFrom TrenaProject getGeneRegion
 #' @importMethodsFrom TrenaProject getGeneEnhancersRegion
-#' @importMethodsFrom TrenaProject getGeneRegulatoryTissues
+## ' @importMethodsFrom TrenaProject getGeneRegulatoryTissues
 #' @importMethodsFrom TrenaProject getGeneRegulatoryRegions
 #' @importFrom RPostgreSQL dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
 #' @import RPostgreSQL
@@ -90,7 +90,9 @@ TrenaProjectHG38 <- function(projectName,
 
 setMethod('getGeneRegulatoryRegions',  'TrenaProjectHG38',
 
-    function(obj, targetGene=NA, tissues="all", fallback.upstream=5000, fallback.downstream=5000){
+    function(obj, targetGene=NA, tissues="all",
+             generic.promoter.fallback.upstream=0, generic.promoter.fallback.downstream=0,
+             proximal.promoter.upstream=0, proximal.promoter.downstream=0){
        if(is.na(targetGene))
           targetGene <- getTargetGene(obj)
        tbl <- retrieveEnhancersFromDatabase(obj@genehancer, targetGene, tissues)
