@@ -30,6 +30,8 @@ runTests <- function()
    test_ctor_withFootprintDatabasePortSpecified()
    test_getEnhancers()
    test_getPrimaryTranscriptInfo()
+   test_getGeneRegulatoryRegions_varyingTissue()
+   test_getGeneRegulatoryRegions_supplementcombineGeneHancerWithGenericPromoterOrProximalPromoter()
 
 } # runTests
 #------------------------------------------------------------------------------------------------------------------------
@@ -177,13 +179,13 @@ test_getPrimaryTranscriptInfo <- function()
 
 } # test_getPrimaryTranscriptInfo
 #------------------------------------------------------------------------------------------------------------------------
-test_getGeneRegulatoryRegions <- function()
+test_getGeneRegulatoryRegions_varyingTissue <- function()
 {
-   message(sprintf("--- test_getGeneRegulatoryRegions"))
-   all.tissues <- getGeneRegulatoryTissues(trenaProj);
+   message(sprintf("--- test_getGeneRegulatoryRegions_varyingTissue"))
+   all.tissues <- getEnhancerTissues(trenaProj);
 
    tbl <- getGeneRegulatoryRegions(trenaProj, "TREM2", "all") # tissues)
-   checkTrue(nrow(tbl) >= 9)  # tre on 19 aud 2019
+   checkTrue(nrow(tbl) >= 9)
 
    tbl.transcript <- getTranscriptsTable(trenaProj, targetGene="TREM2")[1,]
    checkEquals(tbl.transcript$strand, -1)
@@ -193,16 +195,19 @@ test_getGeneRegulatoryRegions <- function()
    checkTrue(!any(brain.tissues %in% tbl$tissue))
 
    suppressWarnings({
-      tbl.classicalPromoter.10kb <- getGeneRegulatoryRegions(trenaProj, "TREM2", brain.tissues)
-      with(tbl.classicalPromoter.10kb, {
+      tbl.genericPromoter.10kb <- getGeneRegulatoryRegions(trenaProj, "TREM2", brain.tissues,
+                                                           geneHancerMissing.promoter.upstream=5000,
+                                                           geneHancerMissing.promoter.downstream=5000)
+      with(tbl.genericPromoter.10kb, {
               checkEquals(start, 41163176 - 5000);
               checkEquals(end,   41163176 + 5000);
               })
-      tbl.classicalPromoter.small <- getGeneRegulatoryRegions(trenaProj, "TREM2", brain.tissues,
-                                                             fallback.upstream=3, fallback.downstream=10)
-      with(tbl.classicalPromoter.small, {
-              checkEquals(start, 41163176 - 10);
-              checkEquals(end,   41163176 + 3);
+      tbl.genericPromoter.small <- getGeneRegulatoryRegions(trenaProj, "TREM2", brain.tissues,
+                                                            geneHancerMissing.promoter.upstream=10,
+                                                            geneHancerMissing.promoter.downstream=3)
+      with(tbl.genericPromoter.small, {
+              checkEquals(start, 41163176 - 3);
+              checkEquals(end,   41163176 + 10);
               })
        }) # suppressWarnings
 
@@ -213,21 +218,86 @@ test_getGeneRegulatoryRegions <- function()
    checkEquals(tbl.transcript$tss, 233060398)
 
    suppressWarnings({
-      tbl.classicalPromoter.10kb <- getGeneRegulatoryRegions(trenaProj, "INPP5D", "bogus")
-      with(tbl.classicalPromoter.10kb, {
-              checkEquals(start, 233060398-5000);
-              checkEquals(end,   233060398+5000)
-              })
-      tbl.classicalPromoter.small <- getGeneRegulatoryRegions(trenaProj, "INPP5D", "bogus",
-                                                              fallback.upstream=3, fallback.downstream=10)
-      with(tbl.classicalPromoter.small, {
-              checkEquals(start, 233060398-3);
-              checkEquals(end,   233060398+10)
-              })
+      tbl <- getGeneRegulatoryRegions(trenaProj, "INPP5D", "bogus")
+      checkEquals(nrow(tbl), 0)
+      tbl <- getGeneRegulatoryRegions(trenaProj, "INPP5D", "bogus",
+                                      geneHancerMissing.promoter.upstream=3,
+                                      geneHancerMissing.promoter.downstream=10)
+      with(tbl, {
+          checkEquals(start, 233060398-3);
+          checkEquals(end,   233060398+10)
+          })
        }) # suppressWarnings
 
+} # test_getGeneRegulatoryRegions_varyingTissue
+#------------------------------------------------------------------------------------------------------------------------
+# request the genehancer regions for a gene, in a tissue, where we know from prior examination
+# that there ARE enhancers, but that they do not include anything like a traditional promoter around the TSS
+# then make the request again, this time providing the +/- coordinates of that putative traditional promoter
+test_getGeneRegulatoryRegions_supplementcombineGeneHancerWithGenericPromoterOrProximalPromoter <- function()
+{
+   message(sprintf("--- test_getGeneRegulatoryRegions_combineGeneHancerWithGenericPromoterOrProximalPromoter"))
 
-} # test_getGeneRegulatoryRegions
+     # first, a gene for which we have transcript info, but with no entry in GeneHancer
+   tbl.transcript <- getTranscriptsTable(trenaProj, targetGene="TREM2")[1,]
+   tss <- tbl.transcript$tss
+   tbl <- getGeneRegulatoryRegions(trenaProj, "TREM2", "placenta")
+   checkEquals(nrow(tbl), 2)
+
+   tbl.ghSupplemented <- getGeneRegulatoryRegions(trenaProj, "TREM2", "placenta",
+                                      geneHancerSupplemental.promoter.upstream=2000,
+                                      geneHancerSupplemental.promoter.downstream=100)
+   checkEquals(nrow(tbl.ghSupplemented), 3)
+
+     # does the new row have the right coordinates?  tss +/- 2000, 100?
+     # the new row should be first, since the tbl is sorted just before return
+   checkEquals(tbl.ghSupplemented$start[1], (tss-100))
+   checkEquals(tbl.ghSupplemented$end[1], (tss+2000))
+
+     # the getTeneRegulatoryRegions method supports a second strategy to
+     # supplement GeneHancer: if the target gene is unknown to GeneHancer
+     # then the "geneHancerMissing.promoter.[up|down]Stream coordinates
+     # are used to create a region around the TSS - which we expect the
+     # user will want to be something like +/- 5kb
+   suppressWarnings(
+      checkEquals(nrow(getGeneRegulatoryRegions(trenaProj, "TREM2", "ear")), 0)
+      )
+
+   suppressWarnings(
+       tbl.ghMissing <- getGeneRegulatoryRegions(trenaProj, "TREM2", "ear",
+                                             geneHancerMissing.promoter.upstream=6000,
+                                             geneHancerMissing.promoter.downstream=4000)
+       )
+   checkEquals(nrow(tbl.ghMissing), 1)
+   checkEquals(tbl.ghMissing$start, tss-4000)
+   checkEquals(tbl.ghMissing$end, tss+6000)
+   checkEquals(tbl.ghMissing$source, "TrenaProjectHG38.gh.missing")
+
+      # the geneHancerMising and geneHancerSupplemental arguments
+      # should never be used at the same time.   ensure that this is so
+
+   suppressWarnings(
+       tbl.ghMissing.2 <- getGeneRegulatoryRegions(trenaProj, "TREM2", "ear",
+                                             geneHancerMissing.promoter.upstream=6000,
+                                             geneHancerMissing.promoter.downstream=4000,
+                                             geneHancerSupplemental.promoter.upstream=2000,
+                                             geneHancerSupplemental.promoter.downstream=200)
+       )
+   checkEquals(tbl.ghMissing, tbl.ghMissing.2)
+
+      # now do the complementary check: gh regions present, sup & missing both
+      # requested, only supplemental should be used
+
+   tbl.ghSupplemented.2 <- getGeneRegulatoryRegions(trenaProj, "TREM2", "placenta",
+                                      geneHancerSupplemental.promoter.upstream=2000,
+                                      geneHancerSupplemental.promoter.downstream=100,
+                                      geneHancerMissing.promoter.upstream=6000,
+                                      geneHancerMissing.promoter.downstream=4000)
+
+   checkEquals(tbl.ghSupplemented, tbl.ghSupplemented.2)
+
+
+} # test_getGeneRegulatoryRegions_combineGeneHancerWithGenericPromoterOrProximalPromoter
 #------------------------------------------------------------------------------------------------------------------------
 if(!interactive())
    runTests()

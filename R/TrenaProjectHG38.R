@@ -91,27 +91,67 @@ TrenaProjectHG38 <- function(projectName,
 setMethod('getGeneRegulatoryRegions',  'TrenaProjectHG38',
 
     function(obj, targetGene=NA, tissues="all",
-             generic.promoter.fallback.upstream=0, generic.promoter.fallback.downstream=0,
-             proximal.promoter.upstream=0, proximal.promoter.downstream=0){
+             geneHancerMissing.promoter.upstream=0,
+             geneHancerMissing.promoter.downstream=0,
+             geneHancerSupplemental.promoter.upstream=0,
+             geneHancerSupplemental.promoter.downstream=0){
+
        if(is.na(targetGene))
           targetGene <- getTargetGene(obj)
+
        tbl <- retrieveEnhancersFromDatabase(obj@genehancer, targetGene, tissues)
-       if(nrow(tbl) == 0){
-          tbl.transcripts <- getTranscriptsTable(obj, targetGene)  # just one row, by convention
-          tss <- tbl.transcripts$tss[1]
-          strand <- tbl.transcripts$strand[1]
-          start.loc <- tss - fallback.upstream
-          end.loc   <- tss + fallback.downstream
+       tbl.ghMissing <- data.frame()
+       tbl.ghSupplemental <- data.frame()
+          # if no regions from GeneHancer, and geneHancerMissing locations are provided:
+       gh.missing <-!(geneHancerMissing.promoter.upstream  == 0 && geneHancerMissing.promoter.downstream == 0)
+       gh.missing <- gh.missing & nrow(tbl) == 0
+          # if > 0 regions obtained from GeneHancer, and supplemental promoter locations provided:
+       gh.supplementing <- !(geneHancerSupplemental.promoter.upstream == 0 && geneHancerSupplemental.promoter.downstream == 0)
+       gh.supplementing <- gh.supplementing & nrow(tbl) > 0
+
+       #if(all(c(gh.missing, gh.supplementing))){
+       #   msg <- sprintf("error! you requested both a 'geneHancerMissing' and a 'geneHancerSupplemental' promoter")
+       #   stop(msg)
+       #   }
+
+          # get vital genomic info on the targetGene
+       tbl.transcripts <- getTranscriptsTable(obj, targetGene)  # just one row, by convention
+       chrom <- tbl.transcripts$chrom[1]
+       tss <-  tbl.transcripts$tss[1]
+       strand <- tbl.transcripts$strand[1]
+
+       if(gh.missing){ # add a generic promoter, typically +/- 5kb
+          start.loc <- tss - geneHancerMissing.promoter.upstream
+          end.loc   <- tss + geneHancerMissing.promoter.downstream
           if(strand == -1){
-             start.loc <- tss - fallback.downstream
-             end.loc   <- tss + fallback.upstream
+             start.loc <- tss - geneHancerMissing.promoter.downstream
+             end.loc   <- tss + geneHancerMissing.promoter.upstream
              }
-          chrom <- tbl.transcripts$chrom[1]
-          tbl.fallback <- data.frame(chrom=chrom, start=start.loc, end=end.loc, gene=targetGene,
-                                     eqtl=NA, hic=NA, erna=NA, coexpression=NA, distancescore=NA, tssproximity=NA,
-                                     combinedscore=NA, elite=NA, source=NA, tissue=NA, type=NA, ghid=NA, sig=NA,
-                                     stringsAsFactors=FALSE)
-          return(tbl.fallback)
+          tbl.ghMissing <- data.frame(chrom=chrom, start=start.loc, end=end.loc, gene=targetGene,
+                                      eqtl=NA, hic=NA, erna=NA, coexpression=NA, distancescore=NA, tssproximity=NA,
+                                      combinedscore=NA, elite=NA, source="TrenaProjectHG38.gh.missing",
+                                      type=NA, ghid=NA, tissue=NA, sig=NA, stringsAsFactors=FALSE)
+          tbl <- tbl.ghMissing
+          } # if gh.missing
+
+       if(gh.supplementing){ # add a very conservative classical promoter, typically +/- 2kb
+          start.loc <- tss - geneHancerSupplemental.promoter.upstream
+          end.loc   <- tss + geneHancerSupplemental.promoter.downstream
+          if(strand == -1){
+             start.loc <- tss - geneHancerSupplemental.promoter.downstream
+             end.loc   <- tss + geneHancerSupplemental.promoter.upstream
+             }
+          tbl.ghSupplemental <- data.frame(chrom=chrom, start=start.loc, end=end.loc, gene=targetGene,
+                                      eqtl=NA, hic=NA, erna=NA, coexpression=NA, distancescore=NA, tssproximity=NA,
+                                      combinedscore=NA, elite=NA, source="TrenaProjectHG38.gh.supplemental",
+                                      type=NA, ghid=NA, tissue=NA,  stringsAsFactors=FALSE)
+          tbl <- rbind(tbl, tbl.ghSupplemental)
+          } # gh.supplementing
+
+          # make sure the tbl is in sort order, ascending by start location
+       if(nrow(tbl) > 0){
+          new.order <- order(tbl$start, decreasing=FALSE)
+          tbl <- tbl[new.order,]
           }
        tbl
        })

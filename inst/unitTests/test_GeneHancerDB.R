@@ -101,6 +101,8 @@ test_failureByTissue <- function()
 test_queryUnknownGene <- function()
 {
    message(sprintf("--- test_queryUnknownGene"))
+   symbol <- "LINC00982"
+   tbl <- retrieveEnhancersFromDatabase(ghdb, symbol, tissues="all")
 
 
 } # test_queryUnknownGene

@@ -8,9 +8,10 @@
 \usage{
 \S4method{getGeneRegulatoryRegions}{TrenaProjectHG38}(obj,
   targetGene = NA, tissues = "all",
-  generic.promoter.fallback.upstream = 0,
-  generic.promoter.fallback.downstream = 0,
-  proximal.promoter.upstream = 0, proximal.promoter.downstream = 0)
+  geneHancerMissing.promoter.upstream = 0,
+  geneHancerMissing.promoter.downstream = 0,
+  geneHancerSupplemental.promoter.upstream = 0,
+  geneHancerSupplemental.promoter.downstream = 0)
 }
 \arguments{
 \item{obj}{An object of class TrenaProjectHG38}
