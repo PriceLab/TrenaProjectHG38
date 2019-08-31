@@ -13,7 +13,7 @@
 
 .GeneHancerDB <- setClass("GeneHancerDB",
                           representation = representation(
-                             db="DBIConnection",
+                             db="character",
                              state="environment"
                              )
                           )
@@ -34,7 +34,7 @@ setGeneric('listTissues', signature='obj', function(obj, targetGene=NA) standard
 GeneHancerDB <- function()
 {
 
-   db <- dbConnect(PostgreSQL(), user= "trena", password="trena", dbname="gh411", host="khaleesi")
+   db <- NA_character_;
    state <- new.env(parent=emptyenv())
 
    .GeneHancerDB(db=db, state=state)
@@ -89,7 +89,8 @@ setMethod('retrieveEnhancersFromDatabase',  'GeneHancerDB',
                         "AND e.ghid=a.ghid")
         query <- sprintf(query, targetGene, tissueClause)
 
-        tbl <- dbGetQuery(obj@db, query)
+        db <- dbConnect(PostgreSQL(), user= "trena", password="trena", dbname="gh411", host="khaleesi")
+        tbl <- dbGetQuery(db, query)
 
         if(nrow(tbl) == 0){
            warning(sprintf("no GeneHancer regions for %s in tissues %s", targetGene, paste(tissues, collapse=",")))
@@ -106,6 +107,7 @@ setMethod('retrieveEnhancersFromDatabase',  'GeneHancerDB',
           # an alternative threshold, just in case.
 
         tbl.2 <- subset(tbl.trimmed, !(is.nan(eqtl) & is.nan(hic) & is.nan(erna)) | combinedscore >= 5)
+        dbDisconnect(db)
         return(tbl.2)
         })
 
@@ -158,7 +160,9 @@ setMethod('listTissues', 'GeneHancerDB',
           query.p2 <- sprintf("a.symbol='%s' AND a.ghid=t.ghid", targetGene)
           query <- paste0(query.p1, query.p2)
           }
-       dbGetQuery(obj@db, query)$tissue
+       db <- dbConnect(PostgreSQL(), user= "trena", password="trena", dbname="gh411", host="khaleesi")
+       result <- dbGetQuery(db, query)$tissue
+       dbDisconnect(db)
        })
 
 #------------------------------------------------------------------------------------------------------------------------
