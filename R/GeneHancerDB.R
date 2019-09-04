@@ -163,6 +163,7 @@ setMethod('listTissues', 'GeneHancerDB',
        db <- dbConnect(PostgreSQL(), user= "trena", password="trena", dbname="gh411", host="khaleesi")
        result <- dbGetQuery(db, query)$tissue
        dbDisconnect(db)
+       return(result)
        })
 
 #------------------------------------------------------------------------------------------------------------------------
