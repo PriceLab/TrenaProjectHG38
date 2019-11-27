@@ -1,8 +1,8 @@
 Package: TrenaProjectHG38
 Type: Package
 Title: TrenaProjectHG38 - an abstract base class for all hg38 projects
-Version: 1.2.1
-Date: 2019-09-03
+Version: 1.2.2
+Date: 2019-11-26
 Author: Paul Shannon
 Maintainer: Paul Shannon<pshannon@systemsbiology.org>
 Imports:
@@ -15,4 +15,4 @@ Description: An abstract base class, providing abstractions for expression, eqtl
 Depends: R (>= 3.5.0), TrenaProject (>= 1.2.0)
 License: Artistic-2.0
 Encoding: UTF-8
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.1

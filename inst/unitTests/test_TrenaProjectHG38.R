@@ -78,45 +78,14 @@ test_ctor <- function()
    expected <- c("someGene.region.vcf", "tbl.snp.gwas.minimal")
    file.list <- getVariantDatasetNames(trenaProj)
    checkTrue(all(expected %in% file.list))
-   #checkTrue(file.exists("someGene.region.vcf"))
-
-     # most variant files - other than vcfs - are serialized into .RData files,
-     # with that suffix stripped off for human readers (in a presumed Shiny UI)
-
-   #checkTrue(file.exists(sprintf("%s.RData", file.list[["tbl.snp.gwas.minimal"]])))
 
    checkEquals(getCovariateDatasetNames(trenaProj), list())
 
-   # tbl.enhancers <- getEnhancers(trenaProj)
-   # checkEquals(colnames(tbl.enhancers), c("chrom", "start", "end", "type", "combinedScore", "geneSymbol"))
-
-   # checkTrue(nrow(tbl.enhancers) >= 5)
-   # checkEquals(unique(tbl.enhancers$geneSymbol), getTargetGene(trenaProj))
-
-   #tbl.dhs <- getEncodeDHS(trenaProj)
-   #checkEquals(colnames(tbl.dhs), c("chrom", "chromStart", "chromEnd", "count", "score"))
-      # these open chromatin regions bear no necessary relation to the targetGene
-      # instead, they span the region of the targetGene-associated enhancers.  check that
-   #loc.min <- min(tbl.enhancers$start)
-   #loc.max <- max(tbl.enhancers$end)
-   #chromosome <- unique(tbl.enhancers$chrom)
-   #checkEquals(length(chromosome), 1)
-   #checkTrue(all(tbl.dhs$chromStart >= loc.min))
-   #checkTrue(all(tbl.dhs$chromStart <= loc.max))
-   #checkTrue(all(tbl.dhs$chromEnd >= loc.min))
-   #checkTrue(all(tbl.dhs$chromEnd <= loc.max))
-   #checkTrue(all(tbl.dhs$chrom == chromosome))
-
-   #tbl.chipseq <- getChipSeq(trenaProj, chrom=chromosome, start=loc.min, end=loc.max, tfs=NA)
-   #checkTrue(nrow(tbl.chipseq) > 2000)
-
-   #checkEquals(colnames(tbl.chipseq), c("chrom", "start", "endpos", "tf", "name", "strand", "peakStart", "peakEnd"))
 
    checkEquals(getGeneRegion(trenaProj)$chromLocString,      "chr6:41158506-41163186")
    checkEquals(getGeneRegion(trenaProj, flankingPercent=20)$chromLocString, "chr6:41157570-41164122")
-
-   #checkEquals(getGeneEnhancersRegion(trenaProj)$chromLocString,                     "chr6:41154324-41210533")
-   #checkEquals(getGeneEnhancersRegion(trenaProj, flankingPercent=10)$chromLocString, "chr6:41148703-41216154")
+   checkEquals(getProximalPromoter(trenaProj, 0, 0)$chromLocString, "chr6:41163176-41163176")
+   checkEquals(getProximalPromoter(trenaProj, 2500, 500)$chromLocString, "chr6:41162676-41165676")
 
    vf <- getVariantDatasetNames(trenaProj)
 
@@ -124,7 +93,6 @@ test_ctor <- function()
    checkTrue(ncol(getGeneInfoTable(trenaProj)) >= 10)
 
    checkEquals(getFootprintDatabasePort(trenaProj), 5432)
-
 
    checkTrue(!recognizedGene(trenaProj, "bogusGene"))      # only genes in the tbl.geneInfo are recognized
 
