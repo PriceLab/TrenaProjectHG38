@@ -91,6 +91,7 @@ setMethod('retrieveEnhancersFromDatabase',  'GeneHancerDB',
 
         db <- dbConnect(PostgreSQL(), user= "trena", password="trena", dbname="gh411", host="khaleesi")
         tbl <- dbGetQuery(db, query)
+        dbDisconnect(db)
 
         if(nrow(tbl) == 0){
            warning(sprintf("no GeneHancer regions for %s in tissues %s", targetGene, paste(tissues, collapse=",")))
@@ -107,7 +108,6 @@ setMethod('retrieveEnhancersFromDatabase',  'GeneHancerDB',
           # an alternative threshold, just in case.
 
         tbl.2 <- subset(tbl.trimmed, !(is.nan(eqtl) & is.nan(hic) & is.nan(erna)) | combinedscore >= 5)
-        dbDisconnect(db)
         return(tbl.2)
         })
 
