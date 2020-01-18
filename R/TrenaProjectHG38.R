@@ -229,10 +229,12 @@ setMethod('getEncodeDHS',   'TrenaProject',
 #' @aliases getChipSeq
 #'
 #' @param obj An object of class TrenaProject
-#' @param chrom string
-#' @param start numeric
-#' @param end numeric
+#' @param chrom string vector
+#' @param start numeric vector
+#' @param end numeric vector
 #' @param tfs one of more tfs - limit the hits to those for this transcription factor/s
+#'
+#' @return data.frame
 #'
 #' @export
 
@@ -241,17 +243,32 @@ setMethod('getChipSeq',  'TrenaProject',
     function(obj, chrom, start, end, tfs=NA){
 
        db <- dbConnect(PostgreSQL(), user= "trena", password="trena", dbname="hg38", host="khaleesi")
-       query <- sprintf("select * from chipseq where chrom='%s' and start >= %d and endpos <= %d", chrom, start, end)
-       tbl.chipSeq <- dbGetQuery(db, query)
+       # query <- sprintf("select * from chipseq where chrom='%s' and start >= %d and endpos <= %d", chrom, start, end)
+       # tbl.chipSeq <- dbGetQuery(db, query)
+       runQuery <- function(i){
+          query <- sprintf("select * from chipseq where chrom='%s' and start >= %d and endpos <= %d", chrom[i], start[i], end[i])
+          printf(query)
+          tbl.hits <- dbGetQuery(db, query)
+          printf("ChIP-seq hits: %d", nrow(tbl.hits))
+          tbl.hits
+          }
+       x <- lapply(seq_len(length(chrom)), runQuery)
+       dbDisconnect(db)
+       tbl.chipSeq <- do.call(rbind, x)
        tf <- NULL  # quiet R CMD CHECK NOTE
        if(!obj@quiet) message(sprintf("tfs before filtering: %d", length (tbl.chipSeq$tf)))
+       if(nrow(tbl.chipSeq) == 0){
+          message(sprintf("TrenaProjectHG38:getChipSeq, no ChIP for %s in %s:%d-%d\n",
+                          paste(tfs, collapse=","), chrom[1], min(start), max(end)))
+          return(data.frame())
+          }
        if(!(all(is.na(tfs))))
          tbl.chipSeq <- subset(tbl.chipSeq, tf %in% tfs)
        if(!obj@quiet){
           message(sprintf("incoming tf filter count: %d", length(tfs)))
           message(sprintf("tfs after filtering: %d", length(unique((tbl.chipSeq$tf)))))
           }
-       dbDisconnect(db)
+       colnames(tbl.chipSeq)[grep("endpos", colnames(tbl.chipSeq))] <- "end"
        return(tbl.chipSeq)
        })
 

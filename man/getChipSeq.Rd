@@ -10,13 +10,16 @@
 \arguments{
 \item{obj}{An object of class TrenaProject}
 
-\item{chrom}{string}
+\item{chrom}{string vector}
 
-\item{start}{numeric}
+\item{start}{numeric vector}
 
-\item{end}{numeric}
+\item{end}{numeric vector}
 
 \item{tfs}{one of more tfs - limit the hits to those for this transcription factor/s}
+}
+\value{
+data.frame
 }
 \description{
 Get all the ReMap 2018 ChIP-seq binding sites in the extended (i.e., enhancers-extended) region of the gene

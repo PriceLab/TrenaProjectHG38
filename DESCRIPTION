@@ -1,8 +1,8 @@
 Package: TrenaProjectHG38
 Type: Package
 Title: TrenaProjectHG38 - an abstract base class for all hg38 projects
-Version: 1.2.3
-Date: 2020-01-08
+Version: 1.2.6
+Date: 2020-01-18
 Author: Paul Shannon
 Maintainer: Paul Shannon<pshannon@systemsbiology.org>
 Imports:

@@ -33,6 +33,9 @@ runTests <- function()
    test_getGeneRegulatoryRegions_varyingTissue()
    test_getGeneRegulatoryRegions_supplementcombineGeneHancerWithGenericPromoterOrProximalPromoter()
 
+   test_getChipSeq.oneRegion()
+   test_getChipSeq.multipleRegions()
+
 } # runTests
 #------------------------------------------------------------------------------------------------------------------------
 test_ctor <- function()
@@ -266,6 +269,41 @@ test_getGeneRegulatoryRegions_supplementcombineGeneHancerWithGenericPromoterOrPr
 
 
 } # test_getGeneRegulatoryRegions_combineGeneHancerWithGenericPromoterOrProximalPromoter
+#------------------------------------------------------------------------------------------------------------------------
+test_getChipSeq.oneRegion <- function()
+{
+   message(sprintf("--- getChipSeq.oneRegion"))
+
+   timing <- system.time(
+      tbl.chip <- getChipSeq(trenaProj, "chr6", 41160969, 41163610)
+      )
+
+   checkEquals(dim(tbl.chip), c(96, 8))
+   checkTrue(timing[["elapsed"]] < 2)
+
+} # test_getChipSeq.oneRegion
+#------------------------------------------------------------------------------------------------------------------------
+test_getChipSeq.multipleRegions <- function()
+{
+   message(sprintf("--- getChipSeq.multipleRegions"))
+
+   chroms <- rep(c("chr6", "chr6"), 5)
+   starts <- rep(c(41161031, 41162842), 5)
+   ends   <- rep(c(41162516, 41163599), 5)
+
+   timing <- system.time(
+      tbl.chip <- getChipSeq(trenaProj, chroms, starts, ends)
+      )
+
+     # 10 calls to getChipSeq took 12 seconds elapsed time
+     # calling getChipSeq once with 10 regions also takes about that long
+
+   checkEquals(dim(tbl.chip), c(480, 8))
+   checkEquals(dim(unique(tbl.chip)), c(96, 8))
+
+   checkTrue(timing[["elapsed"]] < 14)
+
+} # test_getChipSeq.multipleRegions
 #------------------------------------------------------------------------------------------------------------------------
 if(!interactive())
    runTests()
