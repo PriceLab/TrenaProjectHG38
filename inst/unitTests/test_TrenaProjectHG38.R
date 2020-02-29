@@ -279,7 +279,7 @@ test_getChipSeq.oneRegion <- function()
       )
 
    checkEquals(dim(tbl.chip), c(96, 8))
-   checkTrue(timing[["elapsed"]] < 2)
+   checkTrue(timing[["elapsed"]] < 5)
 
 } # test_getChipSeq.oneRegion
 #------------------------------------------------------------------------------------------------------------------------
