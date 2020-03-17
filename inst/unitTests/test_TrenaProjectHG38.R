@@ -301,7 +301,7 @@ test_getChipSeq.multipleRegions <- function()
    checkEquals(dim(tbl.chip), c(480, 8))
    checkEquals(dim(unique(tbl.chip)), c(96, 8))
 
-   checkTrue(timing[["elapsed"]] < 14)
+   checkTrue(timing[["elapsed"]] < 30)
 
 } # test_getChipSeq.multipleRegions
 #------------------------------------------------------------------------------------------------------------------------
