@@ -5,7 +5,7 @@
 \alias{getEnhancers}
 \title{Get all the enhancer regions for the gene}
 \usage{
-\S4method{getEnhancers}{TrenaProjectHG38}(obj, targetGene = NA_character_, tissues = "all")
+\S4method{getEnhancers}{TrenaProjectHG38}(obj, targetGene = NA_character_, tissues = "all", maxSize = 10000)
 }
 \arguments{
 \item{obj}{An object of class TrenaProjectHG38}

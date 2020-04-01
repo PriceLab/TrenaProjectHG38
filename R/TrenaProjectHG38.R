@@ -189,11 +189,16 @@ setMethod('getEnhancerTissues',  'TrenaProjectHG38',
 
 setMethod('getEnhancers',  'TrenaProjectHG38',
 
-     function(obj, targetGene=NA_character_, tissues="all"){
+     function(obj, targetGene=NA_character_, tissues="all", maxSize=10000){
         if(is.na(targetGene))
            targetGene <- getTargetGene(obj)
         if(is.null(targetGene)) return(data.frame())
         tbl <- retrieveEnhancersFromDatabase(obj@genehancer, targetGene, tissues)
+        size <- with(tbl, 1 + end - start)
+        deleters <- which(size > maxSize)
+        if(length(deleters) > 0)
+           tbl <- tbl[-deleters,]
+        tbl
         })
 
 #------------------------------------------------------------------------------------------------------------------------

@@ -135,6 +135,24 @@ test_getEnhancers <- function()
    suppressWarnings(tbl.bogus <- getEnhancers(trenaProj, "bogus99"))
    checkEquals(nrow(tbl.bogus), 0)
 
+      #----------------------------------------------------------------------------------
+      # hoxa5 has a nonsensical promoter, 86kb in size
+      # simon fishilevich calls this an outlier, worth elminating
+      # comes from ENCODE.  he suggests this filter:
+      #    drop all elements >=10kb AND (overlap a gene TSS OR overlap >=3 gene exons)
+      # i am implementing just the first clause for now
+      #----------------------------------------------------------------------------------
+
+   tbl.hoxa5 <- getEnhancers(trenaProj, "HOXA5", maxSize=100000)
+   checkEquals(nrow(tbl.hoxa5), 11)
+   sizes <- with(tbl.hoxa5, 1 + end - start)
+   checkEquals(length(which(sizes > 10000)), 1)
+
+   tbl.hoxa5 <- getEnhancers(trenaProj, "HOXA5", maxSize=10000)
+   checkEquals(nrow(tbl.hoxa5), 10)
+   sizes <- with(tbl.hoxa5, 1 + end - start)
+   checkEquals(length(which(sizes > 10000)), 0)
+
 } # test_getEnhancers
 #------------------------------------------------------------------------------------------------------------------------
 test_getPrimaryTranscriptInfo <- function()
