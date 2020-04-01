@@ -194,6 +194,8 @@ setMethod('getEnhancers',  'TrenaProjectHG38',
            targetGene <- getTargetGene(obj)
         if(is.null(targetGene)) return(data.frame())
         tbl <- retrieveEnhancersFromDatabase(obj@genehancer, targetGene, tissues)
+        if(nrow(tbl) == 0)
+           return(data.frame())
         size <- with(tbl, 1 + end - start)
         deleters <- which(size > maxSize)
         if(length(deleters) > 0)
