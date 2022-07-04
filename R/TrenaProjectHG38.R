@@ -57,7 +57,7 @@ TrenaProjectHG38 <- function(projectName,
 
       # gene-specific information, freshly assigned with every call to setTargetGene
 
-   geneInfoTable.path <- system.file(package="TrenaProjectHG38", "extdata", "geneInfoTable_hg38.RData")
+   geneInfoTable.path <- system.file(package="TrenaProjectHG38", "extdata", "geneInfoTable.RData")
    stopifnot(file.exists(geneInfoTable.path))
    ghdb <- GeneHancerDB()
 
